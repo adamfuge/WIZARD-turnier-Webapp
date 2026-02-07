@@ -60,12 +60,12 @@ Gebe zurück:
 - 5 Spieler: [2,4,6,8,10,12,14,16,18,20]
 
 ### berechnung der nächsten rundenanzahl
-ToDo
+done
 
 ### Partiespeicherung
-Eine fertige Partie wird als JSON gespeichert mit Parametern:
+Eine fertige Partie wird als Array von JSONs gespeichert mit Parametern:
 - tisch, ein Character wie "A"
-- spieler, ein Array mit Zahlen 01 bis 99, diese identifizieren die Spieler
+- spieler, eine Zahl 01 bis 99, diese identifiziert den Spieler
 - partiepunkte, ein Array mit Zahlen, die endpunkzahl der spieler der partie
 - anzahl_richtiger_schätzungen, ein Array mit Zahlen, die Anzahlen, wie oft spieler richtig geschätzt haben.
 
@@ -73,7 +73,7 @@ Eine fertige Partie wird als JSON gespeichert mit Parametern:
 Ein ?JSON?, eine ?Tabelle? mit den Spalten
 - spieler, Zahlen 01 bis 99, diese identifizieren die Spieler
 - summe_turnierpunkte, Zahlen in Zehnerschritten, die Summe der bisher erhaltenen Turnierpunkte der spieler der partie
-- summe_partiepunkte, Zahlen in Zehnerschritten, die Summe endpunkzahl der spieler der partie
+- summe_partiepunkte, Zahlen in Fünferschritten, die Summe endpunkzahl der spieler der partie
 
 
 #### Initialisieren:
