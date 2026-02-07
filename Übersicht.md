@@ -1,5 +1,7 @@
 # Projektübersicht
 
+
+
 ## Frontend
 4 Seiten werden für volle funktionalität benötigt. Diese sollen in htnl geschrieben sein. CSS und Flexbox erweisen sich fürs Design möglicherweise als nützlich.
 
@@ -41,12 +43,20 @@ Erhalte:
 - stiche, ein Array mit Zahlen 0-20, die tatsächliche anzahl an stichen
 - die gespeicherte partie
 
+die punktzahl einer runde berechnet sich
+- Fall: richtig geschätzt, 20 + 10*schaetzungen
+- Fall: falsch geschätzt, -10*abs(schaetzungen-stiche)
+berechne nun punktetabelle[aktuelle_runde] = punktetabelle[punktetabelle.length()] + punktzahl
+
 Gebe zurück:
 - die gespeicherte partie, bei der
   - punktetabelle um eine Zeile erweitert wurde
   - aktuelle_runde um '1' erhöht*
 
-*Bei turnieren werden nur die Runden [1,3,5,7,9,10,11,12] gespielt
+*Bei turnieren werden nur ausgewählte Runden gespielt:
+- 3 Spieler: [2,4,5,6,7,8,9,10,11,12]
+- 4 Spieler: [1,3,5,7,9,11,12,13,14,15]
+- 5 Spieler: [2,4,6,8,10,12,14,16,18,20]
 
 ### berechnung der nächsten rundenanzahl
 ToDo
@@ -69,9 +79,14 @@ Ein ?JSON?, eine ?Tabelle? mit den Spalten
 erhalte:
 - spielerzahl
 
+erschaffe:
 - spieler = 01 bis spielerzahl
 - summe_turnierpunkte= 0
-- summe_partiepunkte
+- summe_partiepunkte= 0
   
 ### Updaten des Turnierstands
+Bei neuer abgeschlossenen partie:
+- ermittle ranking der spieler nach partiepunkten, bei unentschieden entscheidet die anzahl richtiger schätzungen
+- Weise Turnierpunkte zu: Letzer platz = 10 Punkte, Vorletzer = 20, ...
+
 
