@@ -32,11 +32,12 @@ Eventuell könnte hier auch die Berechnung der Aktuellen Turnierpunktzahl der Sp
 ### Partieerstellung
 Eine Partie ist zunächst zu speichern als JSON mit den parametern
 - tisch, ein Character wie "A"
-- spieler, ein Array mit Zahlen 01 bis 99, diese identifizieren die Spieler
+- spieler, ein Array mit Zahlen 01 bis 99: diese identifizieren die Spieler
 - punktetabelle, ein ?Table? initialisiert als [[0,0,0,0]] d.h. (Adam stellt sich das vor, wie) ein Array gefüllt mit Arrays, die eine Zeile des Block der Wahrheit darstellt + der 0. eintrag sind 0en. Beispiel:
   [[0,0,0,0],[20,-10,20,30],,[40,-20,0,50],,,[60,-40,50,30]]
-- letzte_runde, eine Zahl initialisiert als 0, die letzte Runde, in die Punkte eingetragen wurden.
-- aktuelle_runde, eine Zahl initialisiert als 1, die nächste runde in die Punkte eingetragen werden
+- letzte_runde, eine Zahl initialisiert als 0: die letzte Runde, in die Punkte eingetragen wurden.
+- aktuelle_runde, eine Zahl initialisiert als 1: die nächste runde in die Punkte eingetragen werden
+- anzahl_richtiger_schätzungen, ein Array mit Zahlen: die Anzahlen, wie oft spieler richtig geschätzt haben.
 
 ### Berechnung der Partiepunkte
 Erhalte: 
@@ -67,7 +68,8 @@ Eine fertige Partie wird als Array von JSONs gespeichert mit Parametern:
 - tisch, ein Character wie "A"
 - spieler, eine Zahl 01 bis 99, diese identifiziert den Spieler
 - partiepunkte, ein Array mit Zahlen, die endpunkzahl der spieler der partie
-- anzahl_richtiger_schätzungen, ein Array mit Zahlen, die Anzahlen, wie oft spieler richtig geschätzt haben.
+
+- turnierpunkte, ein Array mit Zahlen, die gewonnene turnierpunkte der Spieler
 
 ### Turnierstand
 Ein ?JSON?, eine ?Tabelle? mit den Spalten
