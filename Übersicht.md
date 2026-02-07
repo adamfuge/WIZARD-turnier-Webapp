@@ -35,7 +35,8 @@ Eine Partie ist zunächst zu speichern als JSON mit den parametern
 - spieler, ein Array mit Zahlen 01 bis 99, diese identifizieren die Spieler
 - punktetabelle, ein ?Table? initialisiert als [[0,0,0,0]] d.h. (Adam stellt sich das vor, wie) ein Array gefüllt mit Arrays, die eine Zeile des Block der Wahrheit darstellt + der 0. eintrag sind 0en. Beispiel:
   [[0,0,0,0],[20,-10,20,30],,[40,-20,0,50],,,[60,-40,50,30]]
-- aktuelle_runde, eine Zahl initialisiert als 1, stellt die erste leere zeile im Block der Wahrheit dar
+- letzte_runde, eine Zahl initialisiert als 0, die letzte Runde, in die Punkte eingetragen wurden.
+- aktuelle_runde, eine Zahl initialisiert als 1, die nächste runde in die Punkte eingetragen werden
 
 ### Berechnung der Partiepunkte
 Erhalte: 
