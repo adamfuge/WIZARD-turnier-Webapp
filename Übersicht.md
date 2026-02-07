@@ -6,7 +6,7 @@
 4 Seiten werden für volle funktionalität benötigt. Diese sollen in htnl geschrieben sein. CSS und Flexbox erweisen sich fürs Design möglicherweise als nützlich.
 
 ### index.html
-Die Eingangsseite. Bietet die option auf Partie_erstellen.html oder turnierstand.html
+Die Eingangsseite. Bietet weiterleitungen auf Partie_erstellen.html oder turnierstand.html
 
 ### partie_erstellen.html
 Auf dieser Seite wird der aktuelle Stand einer Partie eingetragen werden können.
