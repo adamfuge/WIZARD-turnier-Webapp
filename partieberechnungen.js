@@ -2,7 +2,7 @@ let partie = new_partie(tisch= "A",
     spieler= [1,2,3])
 
 let schaetzungen = [0,2,5,2]
-let stiche = [0,2,4,1]
+let stiche = [1,2,4,1]
 
 
 function new_partie(tisch,spieler){
@@ -18,6 +18,9 @@ function new_partie(tisch,spieler){
     return(partie)
 }
 
+/**Berechne die nächste Rundenzahl
+*@param  {Number} partie Das aktuelle Partieobjekt
+**/
 function naechste_runde(partie){
     "Berechne die nächste Rundenzahl"
     
@@ -45,9 +48,13 @@ function naechste_runde(partie){
 
 
 
-
+/** Berechne die die punktzahl der aktuellen Runde und aktuallisiere die punktetabelle
+*@param  {Number} partie Das aktuelle Partieobjekt
+*@param  {Array} schaetzungen Ein Array mit den abgegebenen Schätzungen
+*@param  {Array} stiche Ein Array mit der tatsächlichen Stichanzahl
+**/
 function update_punktetabelle(partie,schaetzungen,stiche){
-    "Berechne die die punktzahl der aktuellen Runde und aktuallisiere die punktetabelle"
+    
     
     // validierung: Spiel vorbei?
     if(partie.aktuelle_runde == "ende"){
@@ -69,6 +76,9 @@ function update_punktetabelle(partie,schaetzungen,stiche){
     }
 }
 
+/**Berechne die die punktzahl der aktuellen Runde EINES Spielers
+ * Unbenutzt
+ **/
 function berechne_partiepunkte_pro_spieler(punktesumme,schaetzung,stiche){
     "Berechne die die punktzahl der aktuellen Runde EINES Spielers"
     if(schaetzung == stiche){ punktesumme += 20 + 10*stiche }
@@ -76,6 +86,11 @@ function berechne_partiepunkte_pro_spieler(punktesumme,schaetzung,stiche){
     return(punktesumme)
 }
 
+/** Tue alles um die partie für die nächste runde fertig zu machen
+*@param  {Number} partie Das aktuelle Partieobjekt
+*@param  {Array} schaetzungen Ein Array mit den abgegebenen Schätzungen
+*@param  {Array} stiche Ein Array mit der tatsächlichen Stichanzahl
+**/
 function update_partie(partie,schaetzungen,stiche){
     "Tue alles um die partie für die nächste runde fertig zu machen"
     
@@ -88,10 +103,14 @@ function update_partie(partie,schaetzungen,stiche){
     naechste_runde(partie)
 }
 
+/**
+*Fasse die Partie zusammen, dass in der Datenbank gespeichert werden kann
+*@param {object} partie  Die gespielte Partie
+*@return {Array}        Ein Array an objekten mit parametern tish, spieler, partiepunkte, turnierpunkte  
+**/
 function partie_auswerten(partie){
-    "Fasse die Partie zusammen, dass sie als JSON in der Datenbank gespeichert werden kann"
     
-    // validierung: Spiel vorbei?
+    // validierung: Spiel wirklich vorbei?
     if(partie.aktuelle_runde != "ende"){
         throw new Error("Spiel noch nicht zuende")
     }
@@ -108,6 +127,10 @@ function partie_auswerten(partie){
     return partie_ergebnisse
 }
 
+/** Hilfsfunktion: Ermittle PLatzierungen der Einträge eines Arrays. Doppelte Plätze möglich, dann werden "fehlende" Plätze übersprungen.
+ *@param  {Array} array Array an einträgen, die zu ranken sind
+ *@return {Array}       Die Platzierungen (integers) in einem Array. Doppelte Einträge möglich.
+ **/
 function rankings(array) {
     return array
       .map((v, i) => [v, i])
@@ -117,20 +140,148 @@ function rankings(array) {
       .map(a => a[2]);
 }
 
+/** Hilfsfunktion: Übersetze Platzierung in Turnierpunkte
+*@param  {Number} rank  Die Platzierung eines Spielers
+*@return {Number}       Die resultierenden Turnierpunkte
+**/
 function turnierpunkte(rank){
     const turnierpunkte_pro_platzierung = new Map([[1,45],[2,30],[3,20],[4,10],[5,5]])
     return turnierpunkte_pro_platzierung.get(rank)
 }
 
+/** Hilfsfunktion: gibt ein Array [o,1, ... , N-1] zurück
+*@param  {Number} N
+*@return {Array}     [o,1, ... , N-1]
+**/
+function range(N){
+    let foo = [];
+    for (let i = 0; i < N; i++) {
+        foo.push(i);
+    }
+    return foo
+}
 
+/** Hilfsfunktion: gibt ein Array an doppelten Eintragen der Eingabe zurück
+ *@param {Array} arr    Input
+ *@return {Array}       Array an gedoppelten Einträgen des Inputs
+ **/
+const findDuplicates = (arr) => {
+  let sorted_arr = arr.slice().sort(); // You can define the comparing function here. 
+  // JS by default uses a crappy string compare.
+  // (we use slice to clone the array so the
+  // original array won't be modified)
+  let results = [];
+  for (let i = 0; i < sorted_arr.length - 1; i++) {
+    if (sorted_arr[i + 1] == sorted_arr[i]) {
+      results.push(sorted_arr[i]);
+    }
+  }
+  return results;
+}
+
+/** Gibt die Platzierungen der Spieler als Array der form [2, 3, 4, 1] zurück
+*@param {object} partie  Die gespielte Partie
+* @return {Array}       Die Platzierungen der Spieler zB  [2, 3, 4, 1]
+**/
+function ermittle_platzierungen(partie){
+    // Entferne nicht gespielte Runden aus der Punkte tabelle
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    
+    // Ermittle Platzierungen nach Partiepunkte-Endstand
+    let anzahl_richtiger_schaetzungen = new Array(spieler.length).fill(0)
+    let absolute_ranks = rankings(punktetabelle_einfach[punktetabelle_einfach.length-1])
+    
+    // Prüfe auf Gleichplatzierungen und führe Tiebreaker1 für alle umkäpfte Plätze aus
+    let umkaempfte_platzierungen = findDuplicates(absolute_ranks)
+    if(umkaempfte_platzierungen.length){
+        for(const platz of umkaempfte_platzierungen){
+            // Indices der Spieler in der Punktetabelle für die der Tiebreaker ausgeführt werden muss
+            indices = range(partie.spieler.length).filter(index => absolute_ranks[index] == platz)
+            
+            // Tiebreaker 1 ist: meiste richtige Schätzungen
+            neue_absolute_ranks = tiebreaker1(partie,indices,platz)
+            
+            // Übernehme neue Platzierungen
+            for(const i of indices){
+                absolute_ranks[i] = neue_absolute_ranks[i]
+            }
+        }
+    }
+    
+    
+    return absolute_ranks
+}
+
+/**  Tiebreak nummer 1: Ermittle Platzierungen einer Spieleruntermenge entsprechend der meisten richtigen Schätzungen
+* @param {object}   partie      Die gespielte Partie
+* @param {Array}    indices     Die Indices, die die Untermenge an Spielern darstellt, über die der Tiebreaker angewand werden soll
+* @param {Number}   umkaempfte_platzierung Die Platzierung, die der tiebreakgewinner erhalten soll
+* @return {Array}       Die Platzierungen der Spieleruntermenge zB  [2, , , 3,4]
+**/
+function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
+    
+    // Entferne nicht gespielte Runden aus der Punkte tabelle
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    
+    // Zähle die Anzahl richtiger Schätzungen
+    let anzahl_richtiger_schaetzungen = new Array(spieler.length).fill(0)
+    for(const i of indices){
+        for(const runde of range(punktetabelle_einfach.length-1)){
+            if(punktetabelle_einfach[runde][i]<punktetabelle_einfach[runde+1][i])anzahl_richtiger_schaetzungen[i]++
+        }
+    }
+    
+    // Ranke nach Anzahl schätzungen
+    let relative_ranks = rankings(anzahl_richtiger_schaetzungen)
+    let absolute_ranks = []
+    for(const i of range(indices.length)){
+        absolute_ranks[indices[i]] =  relative_ranks[i] - 1 + umkaempfte_platzierung
+    }
+    
+    // Prüfe auf Gleichplatzierungen und führe Tiebraker aus
+    let umkaempfte_platzierungen = findDuplicates(absolute_ranks)
+    if(umkaempfte_platzierungen.length){
+        for(const platz of umkaempfte_platzierungen){
+            // Indices der Spieler im Tabellenblatt für die der Tiebreaker ausgeführt werden muss
+            indices = range(partie.spieler.length).filter(index => absolute_ranks[index] == platz)
+            
+            // Tiebreaker 1 ist: meiste richtige Schätzungen
+            neue_absolute_ranks = tiebreakerplatzhalter(partie,indices,platz)
+            
+            // Übernehme neue Platzierungen
+            for(const i of indices){
+                absolute_ranks[i] = neue_absolute_ranks[i]
+            }
+        }
+    }
+    
+    return absolute_ranks
+}
+
+/** Platzhalter für noch nicht geschriebene Tiebreaker
+* @param {object}   partie      Die gespielte Partie
+* @param {Array}    indices     Die Indices, die die Untermenge an Spielern darstellt, über die der Tiebreaker angewand werden soll
+* @param {Number}   umkaempfte_platzierung Die Platzierung, die der tiebreakgewinner erhalten soll
+* @return {Array}       Die Platzierungen der Spieleruntermenge zB  [2, , , 3,4]
+**/
+function tiebreakerplatzhalter(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
+    
+    
+    let absolute_ranks = []
+    for(const i of range(indices.length)){
+        absolute_ranks[indices[i]] =  i + umkaempfte_platzierung
+    }
+    
+    return absolute_ranks
+}
 
 //console.log(rankings([300,200,300]))
 
-/* TESTS*/ 
+/* TESTS 
 for(let i=1; i <= 10; i++) {
     update_partie(partie,schaetzungen,stiche)
 
-console.log(partie)
+//console.log(partie)
     
 }
-console.log(partie_auswerten(partie))
+console.log(ermittle_platzierungen(partie))*/
