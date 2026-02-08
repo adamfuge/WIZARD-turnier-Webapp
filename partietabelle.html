@@ -1,1 +1,69 @@
+<!-- 
+Online HTML, CSS and JavaScript editor to run code online.
+-->
+<!DOCTYPE html>
+<html lang="de">
 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <title>WIZARD</title>
+</head>
+
+  
+  
+<body>
+  <div id="title" class="d-flex justify-content-center p-2 bg-wizardscore">
+    Hier kommt der header hin
+  </div>
+  <div id="navContainer" class="container">
+  	<div class="row"> 	
+    	<div class="col-xs-0 col-sm-0 col-md-2 col-lg-3"></div> 
+      	<div class="col-xs-12 col-sm-12 col-md-8 col-lg-6"> 
+          <nav class="navbar navbar-expand-lg marginBottom" style="background-color: white; white-space:nowrap;"> 
+            <div class="container-fluid"> 
+              <!--<a class="navbar-brand" href="#"></a>!--> <ul class="navbar-nav me-auto"> 
+              <li class="nav-item"> 
+                <div id="currentRoundInfo"> 
+                  <div class="d-flex" style="align-items:center;"> 
+                    <div style="padding-right:5px;">
+                    	<span id="roundInfo" style="font-size:1.3rem;font-weight:bold;">
+                          Runde 
+                          <span class="currentRound">
+                            2
+                          </span>
+                      </span>
+                    </div> 
+                    <div>
+                      <span id="roundInfo2">
+                        Jeder Spieler bekommt 
+                        <span class="currentRound">
+                          2
+                        </span> 
+                        Karten
+                      </span>
+                    </div> 
+                  </div> 
+                </div> 
+              </li> 
+              </ul> 
+              <div class="d-flex"> 
+                <ul class="navbar-nav me-auto"> 
+                  <li class="nav-item"> 
+                    <button type="button" id="newGameButton" class="btn btn-light" onclick="load('s1')">
+                      <i class="bi-stars pe-1">
+                      </i>Neuer Punkteblock</button> 
+                  </li>
+                </ul> 
+                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Sprache"> 
+                  <button type="button" id="langButton" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" hidden=""> 
+                    <i class="bi-globe"></i> </button> <ul class="dropdown-menu dropdown-menu-end dropdown-menu-lg-start"><li><a class="dropdown-item" href="https://wizardscore.net/">EN</a></li></ul> </div> </div> </div> </nav> </div> <div class="col-xs-0 col-sm-0 col-md-2 col-lg-3"></div> </div></div>
+  
+  <p>
+    Our HTML editor updates the webview automatically in real-time as you write code.
+  </p>
+  <script src="script.js"></script>
+</body>
+
+</html>
