@@ -93,3 +93,4 @@ Bei neuer abgeschlossenen partie:
 - Weise Turnierpunkte zu: Letzer platz = 10 Punkte, Vorletzer = 20, ...
 
 
+
