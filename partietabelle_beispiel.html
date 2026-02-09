@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+  <title>WIZARD</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "partieberechnungen": "./partieberechnungen.js"
+      }
+    }
+  </script>
+</head>
+
+  
+  
+<body>
+  <div id="title" class="d-flex justify-content-center p-2 bg-wizardscore">
+    Hier kommt der header hin
+  </div>
+  <div id="navContainer" class="container">
+  	<div class="row"> 	
+    	<div class="col-xs-0 col-sm-0 col-md-2 col-lg-3"></div> 
+      	<div class="col-xs-12 col-sm-12 col-md-8 col-lg-6"> 
+          <nav class="navbar navbar-expand-lg marginBottom" style="background-color: white; white-space:nowrap;"> 
+            <div class="container-fluid"> 
+              <!--<a class="navbar-brand" href="#"></a>!--> <ul class="navbar-nav me-auto"> 
+              <li class="nav-item"> 
+                <div id="currentRoundInfo"> 
+                  <div class="d-flex" style="align-items:center;"> 
+                    <div style="padding-right:5px;">
+                    	<span id="roundInfo" style="font-size:1.3rem;font-weight:bold;">
+                          Runde 
+                          <span class="currentRound">
+                            2
+                          </span>
+                      </span>
+                    </div> 
+                    <div>
+                      <span id="roundInfo2">
+                        Jeder Spieler bekommt 
+                        <span class="currentRound">
+                          2
+                        </span> 
+                        Karten
+                      </span>
+                    </div> 
+                  </div> 
+                </div> 
+              </li> 
+              </ul> 
+              <div class="d-flex"> 
+                <ul class="navbar-nav me-auto"> 
+                  <li class="nav-item"> 
+                    <button type="button" id="newGameButton" class="btn btn-light" onclick="load('s1')">
+                      <i class="bi-stars pe-1">
+                      </i>Neuer Punkteblock</button> 
+                  </li>
+                </ul> 
+                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Sprache"> 
+                  <button type="button" id="langButton" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" hidden=""> 
+                    <i class="bi-globe">
+
+                    </i> 
+                  </button> 
+                </div> 
+              </div> 
+            </div> 
+          </nav> 
+        </div> 
+        <div class="col-xs-0 col-sm-0 col-md-2 col-lg-3">
+
+        </div> 
+      </div>
+    </div>
+    <div id="blockContainer" class="container text-center">
+		<div class="row">
+			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-1 space" id="spaceStart">
+			</div>
+
+			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-10" id="block">
+        <div id="InputContainer" class="container sticky-top text-center p-2" style="background:white">
+          <div class="row">
+            <div class="col-1 align-self-center p-0">
+              <div id="roundInfoTransform">
+                Round 
+                <span class="currentRound">
+                  1
+                </span>
+              </div>
+            </div>
+            <div class="col-11 align-content-center p-0 pe-2">
+              <div class="container">
+                <div id="playerRow" class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Name">
+                  <div class="col-3 playerName">
+                    <span id="player1" class="position-relative">
+                      a
+                      <span id="shufflerSpan" class="position-absolute top-50 start-100 translate-middle" style="padding-left: 20px" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dealer">
+                        <i class="bi-files">
+
+                        </i>
+                      </span>
+                    </span>
+                  </div>
+                  <div class="col-3 playerName">
+                    <span id="player2" class="position-relative">
+                      b
+                    </span>
+                  </div>
+                  <div class="col-3 playerName">
+                    <span id="player3" class="position-relative">
+                      c
+                    </span>
+                  </div>
+                  <div class="col-3 playerName">
+                    <span id="player4" class="position-relative">
+                      d
+                    </span>
+                  </div>
+                </div>
+                <div id="scoreRow" class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Total score">
+                  <div class="col-3">
+                    <h4><span id="points1" class="badge text-bg-light">
+                      0
+                    </span>
+                  </h4>
+                </div>
+                <div class="col-3">
+                  <h4>
+                    <span id="points2" class="badge text-bg-light">
+                      0
+                    </span>
+                  </h4>
+                </div>
+                <div class="col-3">
+                  <h4>
+                    <span id="points3" class="badge text-bg-light">
+                      0
+                    </span>
+                  </h4>
+                </div>
+                <div class="col-3">
+                  <h4>
+                    <span id="points4" class="badge text-bg-light">
+                      0
+                    </span>
+                  </h4>
+                </div>
+              </div>
+              <div class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Bid">
+                <div class="col-3 inputField"> 
+                  <input type="text" class="form-control bid inputBold" placeholder="Bid" id="bid1" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+                  <div class="invalid-feedback">
+                    Invalid count
+                  </div> 
+                </div>
+                <div class="col-3 inputField"> 
+                  <input type="text" class="form-control bid inputBold" placeholder="Bid" id="bid2" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+                  <div class="invalid-feedback">
+                    Invalid count
+                  </div> 
+                </div>
+                <div class="col-3 inputField"> 
+                  <input type="text" class="form-control bid inputBold" placeholder="Bid" id="bid3" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+                  <div class="invalid-feedback">
+                    Invalid count
+                  </div> 
+                </div>
+                <div class="col-3 inputField"> 
+                  <input type="text" class="form-control bid inputBold" placeholder="Bid" id="bid4" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+                  <div class="invalid-feedback">
+                    Invalid count
+                  </div> 
+                </div>
+              </div>
+              <div class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Actual">
+                <div class="col-3 inputField"> 
+                  <input type="text" class="form-control actual inputBold" placeholder="Actual" id="actual1" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
+                  <div class="invalid-feedback">
+                    Invalid count
+                  </div> 
+                </div>
+                <div class="col-3 inputField"> 
+                  <input type="text" class="form-control actual inputBold" placeholder="Actual" id="actual2" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
+                  <div class="invalid-feedback">
+                    Invalid count
+                  </div> 
+                </div>
+                <div class="col-3 inputField"> 
+                  <input type="text" class="form-control actual inputBold" placeholder="Actual" id="actual3" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
+                  <div class="invalid-feedback">
+                    Invalid count
+                  </div> 
+                </div>
+                <div class="col-3 inputField"> 
+                  <input type="text" class="form-control actual inputBold" placeholder="Actual" id="actual4" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
+                  <div class="invalid-feedback">
+                    Invalid count
+                  </div> 
+                </div>
+              </div>
+              <div id="InputSubmit" class="row"> 
+                <div class="col-xs-1 col-sm-1 col-md-2"> 
+
+                </div> 
+                <div class="col-xs-10 col-sm-10 col-md-8"> 
+                  <div class="btn-group pt-2 pb-2"> 
+                    <div class="p-1"> 
+                      <button type="button" id="submitRoundButton" class="btn btn-primary" onclick="submitRound()">
+                        <i class="bi-box-arrow-in-down pe-1">
+
+                        </i>
+                        Finish round 
+                        <span id="SubmitRound">
+                          1
+                        </span>
+                      </button> 
+                    </div> 
+                    <div class="p-1" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Undo last round"> 
+                      <button type="button" class="btn btn-danger" id="undoButton" data-bs-toggle="modal" data-bs-target="#modalUndoRound" disabled="">
+                        <i class="bi-arrow-counterclockwise">
+
+                        </i>
+                      </button> 
+                    </div> 
+                  </div> 
+                </div> 
+                <div class="col-xs-1 col-sm-1 col-md-2"> 
+
+                </div> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade" id="modalUndoRound" tabindex="-1" aria-labelledby="modalUndoRoundLabel" aria-hidden="true"> 
+        <div class="modal-dialog"> 
+          <div class="modal-content"> 
+            <div class="modal-header"> 
+              <h1 class="modal-title fs-5" id="modalUndoRoundLabel">
+                Undo last round?
+              </h1> 
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+
+              </button> 
+            </div> 
+            <div id="modalUndoRoundBody" class="modal-body">
+              Do you really want to undo last round? 
+            </div> 
+            <div class="modal-footer"> 
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                No
+              </button> 
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="undoRound()">
+                Yes, undo
+              </button> 
+            </div> 
+          </div> 
+        </div> 
+      </div>
+      <div id="ResultsContainer" class="container text-center card bg-light ps-1 pe-2 pt-2 pb-2">
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            1
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder1" class="container">
+              <div class="row" id="resultRow1">
+                <div class="col-3 p-1">
+                  <div class="card">
+                    <div class="row" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="a">
+                      <div class="col-8 align-self-center p-1">
+                        <span class="position-relative">
+                          -10
+                          <span class="position-absolute top-50 start-100 translate-middle" style="padding-left: 20px">
+                            <i class="bi-files">
+
+                            </i>
+                          </span>
+                        </span>
+                      </div>
+                      <div class="col-2 p-1">
+                        <div class="col-12">
+                          <span class="bid">
+                            1
+                          </span>
+                        </div>
+                        <div class="col-12">
+                          <span class="actual">
+                            0
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-3 p-1">
+                  <div class="card">
+                    <div class="row" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="b">
+                      <div class="col-8 align-self-center p-1">
+                        <span class="position-relative">
+                          30
+                        </span>
+                      </div>
+                      <div class="col-2 p-1">
+                        <div class="col-12">
+                          <span class="bid bold matchColor">
+                            1
+                          </span>
+                        </div>
+                        <div class="col-12">
+                          <span class="actual bold matchColor">
+                            1
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-3 p-1">
+                  <div class="card">
+                    <div class="row" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="c">
+                      <div class="col-8 align-self-center p-1">
+                        <span class="position-relative">
+                          20
+                        </span>
+                      </div>
+                      <div class="col-2 p-1">
+                        <div class="col-12">
+                          <span class="bid bold matchColor">
+                            0
+                          </span>
+                        </div>
+                        <div class="col-12">
+                          <span class="actual bold matchColor">
+                            0
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-3 p-1">
+                  <div class="card">
+                    <div class="row" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="d">
+                      <div class="col-8 align-self-center p-1">
+                        <span class="position-relative">
+                          20
+                        </span>
+                      </div>
+                      <div class="col-2 p-1">
+                        <div class="col-12">
+                          <span class="bid bold matchColor">
+                            0
+                          </span>
+                        </div>
+                        <div class="col-12">
+                          <span class="actual bold matchColor">
+                            0
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            2
+          </div><div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder2" class="container card p-1">
+              <div class="row" id="resultRow2">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            3
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder3" class="container card p-1">
+              <div class="row" id="resultRow3">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            4
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder4" class="container card p-1">
+              <div class="row" id="resultRow4">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            5
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder5" class="container card p-1">
+              <div class="row" id="resultRow5">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            6
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder6" class="container card p-1">
+              <div class="row" id="resultRow6">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            7
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder7" class="container card p-1">
+              <div class="row" id="resultRow7">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            8
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder8" class="container card p-1">
+              <div class="row" id="resultRow8">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            9
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder9" class="container card p-1">
+              <div class="row" id="resultRow9">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            10
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder10" class="container card p-1">
+              <div class="row" id="resultRow10">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            11
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder11" class="container card p-1">
+              <div class="row" id="resultRow11">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            12
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder12" class="container card p-1">
+              <div class="row" id="resultRow12">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            13
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder13" class="container card p-1">
+              <div class="row" id="resultRow13">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            14
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder14" class="container card p-1">
+              <div class="row" id="resultRow14">
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+            15
+          </div>
+          <div class="col-11 align-content-center p-0 pe-2">
+            <div id="cardPlaceholder15" class="container card p-1">
+              <div class="row" id="resultRow15">
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade" id="modalCheckRuleMaxGuess" tabindex="-1" aria-labelledby="modalCheckRuleMaxGuessLabel" aria-hidden="true">
+         <div class="modal-dialog"> 
+          <div class="modal-content"> 
+            <div class="modal-header"> 
+              <h1 class="modal-title fs-5" id="modalCheckRuleMaxGuessLabel">
+                Number of tricks exceeds round number
+              </h1> 
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+
+              </button> 
+            </div> 
+            <div id="modalCheckRuleMaxGuessBody" class="modal-body"> 
+              Invalid total of actual tricks. The maximum number of tricks to be taken in this round is x 
+            </div> 
+            <div class="modal-footer"> 
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                Close
+              </button> 
+            </div> 
+          </div> 
+        </div> 
+      </div>
+      <div id="supportContainer" class="container text-cemter p-2">
+        <div class="row">
+          <div class="col-12 pt-3">
+            <div class="row">
+              <div class="col-12 pt-3">
+                <button type="button" id="sendFeedbackButton" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalFeedback">
+                  <i class="bi-envelope-paper pe-1"></i>
+                  Feedback
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal fade" id="modalFeedback" tabindex="-1" aria-labelledby="modalFeedbackLabel" aria-hidden="true"> 
+        <div class="modal-dialog"> 
+          <div class="modal-content"> 
+            <div class="modal-header"> 
+              <h1 class="modal-title fs-5" id="modalFeedbackLabel">
+                Send feedback or found a problem?
+              </h1> 
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+
+              </button> 
+            </div> 
+            <div id="modalFeedbackBody" class="modal-body"> 
+              <div class="form-floating">
+                <textarea class="form-control" placeholder="Leave a comment here" id="feedbacktext" maxlength="512" style="height: 300px; resize: none;">
+
+                </textarea>
+                <label for="feedbacktext">
+                  Feedback
+                </label>
+              </div> 
+            </div> 
+            <div class="modal-footer"> 
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                Cancel
+              </button> 
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="sendFeedback()">
+                Send
+              </button> 
+            </div> 
+          </div> 
+        </div> 
+      </div>
+    </div>
+		<div class="col-xs-12 col-sm-12 col-md-12 col-lg-1 space" id="spaceEnd">
+		</div>
+	</div>
+  <p>
+    
+  </p>
+  <script>console.log('Hello World')</script>
+  <script type="module" src="partietabelle_bauen.js"></script>
+</body>
+
+</html>
