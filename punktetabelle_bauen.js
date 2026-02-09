@@ -22,7 +22,7 @@ function bauePunktetabelle(partie){
     for(const i of rundenzahlen[partie.spieler.length]){
         
         tabellencode += `
-                    <div class="row"> 
+                    <div class="PunkteZeile"> 
                         ${baueReihe(partie,i)} 
                     </div>`
     }
@@ -39,7 +39,7 @@ function baueReihe(partie,i){
 }
 
 function baueLeereReihe(partie,i){
-    return `<div class="col-1 align-self-center p-0" style="font-weight: bold">
+    return `<div class="rundenzahl col-1 align-self-center p-0" style="font-weight: bold">
             ${i}
           </div>
           <div class="col-11 align-content-center p-0 pe-2">
@@ -53,7 +53,7 @@ function baueLeereReihe(partie,i){
 
 function baueVolleReihe(partie,reihenzahl){
     let reihe = `
-          <div class="col-1 align-self-center p-0" style="font-weight: bold">
+          <div class="rundenzahl col-1 align-self-center p-0" style="font-weight: bold">
           ${reihenzahl}
           </div>
           <div class="col-11 align-content-center p-0 pe-2">
@@ -71,30 +71,45 @@ function baueVolleReihe(partie,reihenzahl){
 
 function baueVolleReiheElement(partie,runde,spielerindex){
     return `
-                <div class="col-3 p-1">
-                  <div class="card">
-                    <div class="row" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="${partie.spieler[spielerindex]}">
-                      <div class="col-8 align-self-center p-1">
-                        <span class="position-relative">
-                          ${partie.punktetabelle[runde][spielerindex]}
-                          <span class="position-absolute top-50 start-100 translate-middle" style="padding-left: 20px">
-                            ${partie.geber[runde]==partie.spieler[spielerindex] ? `<i class="bi-files"></i>`:``}
-                          </span>
-                        </span>
-                      </div>
-                      <div class="col-2 p-1">
-                        <div class="col-12">
-                          <span class="bid ${partie.schaetzungen[runde][spielerindex] == partie.stiche[runde][spielerindex] ? `bold matchColor`:``}">
-                            ${partie.schaetzungen[runde][spielerindex]}
-                          </span>
-                        </div>
-                        <div class="col-12">
-                          <span class="actual ${partie.schaetzungen[runde][spielerindex] == partie.stiche[runde][spielerindex] ? `bold matchColor`:``}">
-                            ${partie.stiche[runde][spielerindex]}
-                          </span>
-                        </div>
-                      </div>
+                <div class="punkteelement">
+                  <div class="punktzahl">
+                    ${partie.punktetabelle[runde][spielerindex]}
+                  </div>
+                  <div class="position-absolute top-50 start-100 translate-middle" style="padding-left: 20px">
+                        <!--${partie.geber[runde]==partie.spieler[spielerindex] ? `<i class="bi-files"></i>`:``}-->
+                  </div>
+                  <div class="schaetzung-stiche">
+                    <div class="schaetzung${partie.schaetzungen[runde][spielerindex] == partie.stiche[runde][spielerindex] ? ` bold matchColor`:``}">
+                        ${partie.schaetzungen[runde][spielerindex]}
+                    </div>
+                    <div class="stiche${partie.schaetzungen[runde][spielerindex] == partie.stiche[runde][spielerindex] ? ` bold matchColor`:``}">
+                        ${partie.stiche[runde][spielerindex]}
                     </div>
                   </div>
                 </div>`
 }
+
+function submitRunde(){
+    console.log('test')
+    // Entnehme Eingaben
+
+    // Prüfe eingaben
+
+    // Update Partie
+    pb.update_partie(partie,pb.schaetzungen,pb.stiche)
+
+    // Baue die Punktetabelle neu
+    neubauePunktetabelle(partie)
+
+}
+
+function neubauePunktetabelle(partie){
+    let punktetabelle = document.getElementById("ResultsContainer")
+    let neue_punktetabelle = document.createElement("div")
+    neue_punktetabelle.id = "ResultsContainer"
+    neue_punktetabelle.class = "container text-center card bg-light ps-1 pe-2 pt-2 pb-2"
+    punktetabelle.replaceWith(neue_punktetabelle)
+
+}
+
+function test(){console.log('test')}
