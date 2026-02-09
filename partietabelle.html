@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
   <title>WIZARD</title>
+  <link rel='stylesheet' href='partietabelle.css'>
   <script type="importmap">
     {
       "imports": {
@@ -82,7 +82,7 @@
 			</div>
 
 			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-10" id="block">
-        <div id="InputContainer" class="container sticky-top text-center p-2" style="background:white">
+        <div id="InputContainer" class="container sticky-top text-center p-2" style="background:white; max-width: 100vw;">
           <div class="row">
             <div class="col-1 align-self-center p-0">
               <div id="roundInfoTransform">
@@ -99,9 +99,7 @@
                     <span id="player1" class="position-relative">
                       a
                       <span id="shufflerSpan" class="position-absolute top-50 start-100 translate-middle" style="padding-left: 20px" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dealer">
-                        <i class="bi-files">
-
-                        </i>
+                        <i class="bi-files"></i>
                       </span>
                     </span>
                   </div>
@@ -209,12 +207,10 @@
                 <div class="col-xs-10 col-sm-10 col-md-8"> 
                   <div class="btn-group pt-2 pb-2"> 
                     <div class="p-1"> 
-                      <button type="button" id="submitRoundButton" class="btn btn-primary" onclick="submitRound()">
-                        <i class="bi-box-arrow-in-down pe-1">
-
-                        </i>
+                      <button type="button" id="submitRoundButton" class="btn btn-primary" onclick="submitRunde()">
+                        <i class="bi-box-arrow-in-down pe-1"></i>
                         Finish round 
-                        <span id="SubmitRound">
+                        <span id="submitRoundNumber">
                           1
                         </span>
                       </button> 
@@ -236,7 +232,7 @@
           </div>
         </div>
       </div>
-      <div class="modal fade" id="modalUndoRound" tabindex="-1" aria-labelledby="modalUndoRoundLabel" aria-hidden="true"> 
+      <!--<div class="modal fade" id="modalUndoRound" tabindex="-1" aria-labelledby="modalUndoRoundLabel" aria-hidden="true"> 
         <div class="modal-dialog"> 
           <div class="modal-content"> 
             <div class="modal-header"> 
@@ -260,8 +256,10 @@
             </div> 
           </div> 
         </div> 
-      </div>
-      <div id="ResultsContainer" class="container text-center card bg-light ps-1 pe-2 pt-2 pb-2">
+      </div>-->
+      <div class="pagerow"> 
+        <div id="ResultsContainer" class="container text-center card bg-light ps-1 pe-2 pt-2 pb-2">
+        </div>
       </div>
       <div class="modal fade" id="modalCheckRuleMaxGuess" tabindex="-1" aria-labelledby="modalCheckRuleMaxGuessLabel" aria-hidden="true">
          <div class="modal-dialog"> 
@@ -285,7 +283,7 @@
           </div> 
         </div> 
       </div>
-      <div id="supportContainer" class="container text-cemter p-2">
+      <!--<div id="supportContainer" class="container text-cemter p-2">
         <div class="row">
           <div class="col-12 pt-3">
             <div class="row">
@@ -330,15 +328,16 @@
             </div> 
           </div> 
         </div> 
-      </div>
+      </div>-->
     </div>
 		<div class="col-xs-12 col-sm-12 col-md-12 col-lg-1 space" id="spaceEnd">
 		</div>
 	</div>
+
   <p>
     
   </p>
-  <script>console.log('Hello World')</script>
+  <button onclick="test()"></button>
   <script type="module" src="partietabelle_bauen.js"></script>
 </body>
 
