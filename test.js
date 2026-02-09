@@ -56,7 +56,7 @@ function naechste_runde(partie){
 function naechster_geber(partie){
     
     // validierung: Spiel schon vorbei?
-    if(partie.aktuelle_runde == "ende"){
+    if(partie.letzte_runde == "ende"){
         throw new Error("Spiel ist zuende")
     }
     
@@ -209,7 +209,7 @@ const findDuplicates = (arr) => {
 
 /** Gibt die Platzierungen der Spieler als Array der form [2, 3, 4, 1] zurück
 *@param {object} partie  Die gespielte Partie
-* @return {Array}       Die Platzierungen der Spieler zB  [2, 3, 4, 1]
+*@return {Array<Number>}       Die Platzierungen der Spieler zB  [2, 3, 4, 1]
 **/
 function ermittle_platzierungen(partie){
     // Entferne nicht gespielte Runden aus der Punkte tabelle
@@ -393,37 +393,162 @@ function baueVolleReiheElement(partie,runde,spielerindex){
 }
 
 
-let TestButton = document.getElementById('testbutton')
 
-TestButton.onclick = function(){
-
-    console.log('hi')
-}
 
 let submitButton = document.getElementById('submitRundeButton')
 submitButton.onclick = function(){
-    console.log('test')
-    // Entnehme Eingaben
-    /*
-    // Prüfe eingaben
+    
+    if(alleFelderGefuellt()){
+        
+        // Entnehme Eingaben
+        let schaetzung_inputs = document.getElementsByClassName('schaetzunginput')
+        let stich_inputs = document.getElementsByClassName('stichinput')
+        let schaetzungen = []
+        let stiche = []
+        for(let i in partie.spieler){
+            stiche[i] = Number(stich_inputs[i].value)
+            schaetzungen[i] = Number(schaetzung_inputs[i].value)
+        }
 
-    // Update Partie
-    update_partie(partie,schaetzungen,stiche)
+        console.log('yay')
 
-    // Baue die Punktetabelle neu
-    neubauePunktetabelle(partie)
-    */
+        // Prüfe eingaben
+
+        // Update Partie
+        update_partie(partie,schaetzungen,stiche)
+
+        // Baue die Punktetabelle neu
+        neubauePunktetabelle(partie)
+        
+        // Baue die Rundeninfos neu
+        baue_neu_rundeninfo(partie)
+
+        // Setze Inputs und Submitbutton zurück
+        reset_inputs()
+        resetSubmitButton()
+
+        
+    }
 }
 
 
 function neubauePunktetabelle(partie){
-    let punktetabelle = document.getElementById("ResultsContainer")
-    let neue_punktetabelle = document.createElement("div")
-    neue_punktetabelle.id = "ResultsContainer"
-    neue_punktetabelle.class = "container text-center card bg-light ps-1 pe-2 pt-2 pb-2"
-    punktetabelle.replaceWith(neue_punktetabelle)
+    let punktetabelle = document.getElementById("ResultsContainer");
+    let neue_punktetabelle = document.createElement("div");
+    neue_punktetabelle.id = "ResultsContainer";
+    neue_punktetabelle.class = "container text-center card bg-light ps-1 pe-2 pt-2 pb-2";
+    console.log(neue_punktetabelle.class)
+    punktetabelle.replaceWith(neue_punktetabelle);
+    bauePunktetabelle(partie)
 
 }
+
+function baue_neu_rundeninfo(partie){
+    //
+    let aktuelle_runde_zahl = document.getElementsByClassName('aktuelleRundenzahl')
+    
+    for(const h of aktuelle_runde_zahl){h.innerText = `${partie.aktuelle_runde}`}
+
+    baue_neu_gesamtpunktzahl()
+
+}
+
+function validateNumber(self){
+
+    checkAndCorrectValidInput(self)
+    //überprüfe ob alle Felder gefüllt sind und färbe den 'Runde eintragen Knopf'
+    if(alleFelderGefuellt()){
+        let submitButton = document.getElementById('submitRundeButton')
+        submitButton.className += ' validSubmission'
+    }
+    
+}
+
+function validateNumber2(self){
+
+    // Vermeide weirdes Usergefühl
+    if(self.value != ''){
+
+
+        if(checkAndCorrectValidInput(self) == true){
+            let stichsumme = 0
+            let stiche_inputs = document.getElementsByClassName('stichinput')
+            for(const i of stiche_inputs){
+                if(i.value != ''){stichsumme += Number(i.value)}
+            }
+
+            console.log(stichsumme)
+
+            if(stichsumme > partie.aktuelle_runde){
+                self.value = self.value.substring(0, self.value.length - 1);
+            }
+            else if(stichsumme == partie.aktuelle_runde){
+                for(const i of stiche_inputs){
+                    if(i.value == ''){i.value=0}
+                }
+
+                //überprüfe ob alle Felder gefüllt sind und färbe den 'Runde eintragen Knopf'
+                if(alleFelderGefuellt()){
+                    let submitButton = document.getElementById('submitRundeButton')
+                    submitButton.className += ' validSubmission'
+                }
+            }
+        }
+    }
+}
+
+function isPositiveInteger(string){
+    return /^\d*$/.test(string)
+}
+
+function checkAndCorrectValidInput(self){
+    //Versuche zuerst Eingabe zu fixen
+    if(!isPositiveInteger(self.value) | partie.aktuelle_runde < self.value){
+        self.value = self.value.substring(0, self.value.length - 1);
+        //wenn nicht erfolgreich, lösche eingabe
+        if(!isPositiveInteger(self.value) | partie.aktuelle_runde < self.value){
+            self.value = ''
+        }
+        return false
+    }
+    else return true
+}
+
+function alleFelderGefuellt(){
+    let runden_inputs = document.getElementsByClassName('rundeninput')
+    let alle_inputs_gefüllt = true;
+    for(const input of runden_inputs){
+        if(input.value == ''){alle_inputs_gefüllt=false}
+    }
+    return alle_inputs_gefüllt
+}
+
+function reset_inputs(){
+    let runden_inputs = document.getElementsByClassName('rundeninput')
+    for(const input of runden_inputs){
+        input.value = ''
+    }
+}
+
+function resetSubmitButton(){
+    let submitButton = document.getElementById('submitRundeButton')
+    submitButton.classList.remove('validSubmission')
+}
+
+function baue_neu_gesamtpunktzahl(){
+    for(let i of range(partie.spieler.length)){
+        let punktzahl = document.getElementById(`punkte${i+1}`)
+        punktzahl.innerText = partie.punktetabelle[partie.letzte_runde][i]
+        
+        
+        if(partie.punktetabelle[partie.letzte_runde][i] == partie.punktetabelle[partie.letzte_runde].reduce((a, b) => Math.max(a, b), -Infinity)){
+            punktzahl.parentElement.className += ' fuehrender'
+
+            }
+        else punktzahl.parentElement.classList.remove('fuehrender')
+    }
+}
+
 
 
 
@@ -455,11 +580,9 @@ let partie = new_partie('A',[1,2,3,4])
 
 update_partie(partie,schaetzungen,stiche)
 
-
-console.log(partie)
-
 const rundenzahlen_ohne_ende = [,,,[2,4,5,6,7,8,9,10,11,12],[1,3,5,7,9,11,12,13,14,15], [2,4,6,8,10,12,14,16,18,20]
         ]
 
 bauePunktetabelle(partie)
 
+baue_neu_rundeninfo(partie)

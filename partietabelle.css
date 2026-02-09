@@ -66,6 +66,18 @@
     background-color: lightgoldenrodyellow;
 }
 
+#InputContainer{
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    height: auto;
+    width: max-content;
+    margin-inline: auto;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: lightgoldenrodyellow;
+}
+
 .rundenzahl{
     display: flex;
     align-self: left;
@@ -89,9 +101,78 @@
     border-right: 1px solid gray;
     width:70px;
 
+}
 
-<<<<<<< HEAD
+.validSubmission{
+    background-color: lightgreen;
 }
-=======
+
+.hide{
+    display: none;
 }
->>>>>>> 9551be3b73441048310df3548e3a8b4c29a2b58c
+
+.rundeninput{
+    border: grey solid 1px;
+    border-radius: 5px;
+    background-color: whitesmoke;
+    margin: 2px;
+    width: 60px;
+}
+
+#gesamtpunktzahlen{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-content: center;
+}
+
+.gesamtpunktzahl{
+    width: 60px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    height: 30px;
+    width: 3em;
+    background-color: lightgray;
+    border-radius: 5px;
+}
+
+.fuehrender{
+    background-color: lightgreen;
+}
+
+#InputSubmit{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-content: center;
+}
+
+#submitRundeButton{
+    margin-top: 10px;
+    margin-bottom: 10px;
+    
+}
+
+#rundeninfo{
+    rotate: 270deg;
+}
+
+#playerRow{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-content: baseline;
+}
+
+.playerName{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 10px;
+    width: 3em;
+
+}

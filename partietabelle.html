@@ -13,6 +13,7 @@
       }
     }
   </script>
+    <script src="https://code.jquery.com/jquery-4.0.0.js"></script>
 </head>
 
   
@@ -29,12 +30,12 @@
             <div class="container-fluid"> 
               <!--<a class="navbar-brand" href="#"></a>!--> <ul class="navbar-nav me-auto"> 
               <li class="nav-item"> 
-                <div id="currentRoundInfo"> 
+                <div id="aktuelleRundeninfo"> 
                   <div class="d-flex" style="align-items:center;"> 
                     <div style="padding-right:5px;">
                     	<span id="roundInfo" style="font-size:1.3rem;font-weight:bold;">
                           Runde 
-                          <span class="currentRound">
+                          <span class="aktuelleRundenzahl">
                             2
                           </span>
                       </span>
@@ -42,7 +43,7 @@
                     <div>
                       <span id="roundInfo2">
                         Jeder Spieler bekommt 
-                        <span class="currentRound">
+                        <span class="aktuelleRundenzahl">
                           2
                         </span> 
                         Karten
@@ -77,156 +78,134 @@
       </div>
     </div>
     <div id="blockContainer" class="container text-center">
-		<div class="row">
+		
 			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-1 space" id="spaceStart">
 			</div>
-
-			<div class="col-xs-12 col-sm-12 col-md-12 col-lg-10" id="block">
-        <div id="InputContainer" class="container sticky-top text-center p-2" style="background:white; max-width: 100vw;">
-          <div class="row">
-            <div class="col-1 align-self-center p-0">
-              <div id="roundInfoTransform">
-                Round 
-                <span class="currentRound">
-                  1
-                </span>
+      <div class="pagerow">
+			  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-10" id="block">
+          <div id="InputContainer" class="container sticky-top text-center p-2" style="background:white; max-width: 100vw;">
+            <div class="row">
+              <div class="col-1 align-self-center p-0">
+                <div id="rundeninfo">
+                  Runde
+                  <span class="aktuelleRundenzahl">
+                    1
+                  </span>
+                </div>
               </div>
-            </div>
-            <div class="col-11 align-content-center p-0 pe-2">
-              <div class="container">
-                <div id="playerRow" class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Name">
-                  <div class="col-3 playerName">
-                    <span id="player1" class="position-relative">
+              <div class="col-11 align-content-center p-0 pe-2">
+                <div class="container">
+                  <div id="playerRow" class="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Name">
+                    
+                    <span id="player0" class="playerName">
                       a
-                      <span id="shufflerSpan" class="position-absolute top-50 start-100 translate-middle" style="padding-left: 20px" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dealer">
+                      <!--<span id="shufflerSpan" class="position-absolute top-50 start-100 translate-middle" style="padding-left: 20px" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Dealer">
                         <i class="bi-files"></i>
-                      </span>
+                      </span>-->
                     </span>
-                  </div>
-                  <div class="col-3 playerName">
-                    <span id="player2" class="position-relative">
+                    <span id="player1" class="playerName">
                       b
                     </span>
-                  </div>
-                  <div class="col-3 playerName">
-                    <span id="player3" class="position-relative">
+                    <span id="player2" class="playerName">
                       c
                     </span>
-                  </div>
-                  <div class="col-3 playerName">
-                    <span id="player4" class="position-relative">
+                    <span id="player3" class="playerName">
                       d
                     </span>
                   </div>
-                </div>
-                <div id="scoreRow" class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Total score">
-                  <div class="col-3">
-                    <h4><span id="points1" class="badge text-bg-light">
-                      0
-                    </span>
-                  </h4>
-                </div>
-                <div class="col-3">
-                  <h4>
-                    <span id="points2" class="badge text-bg-light">
-                      0
-                    </span>
-                  </h4>
-                </div>
-                <div class="col-3">
-                  <h4>
-                    <span id="points3" class="badge text-bg-light">
-                      0
-                    </span>
-                  </h4>
-                </div>
-                <div class="col-3">
-                  <h4>
-                    <span id="points4" class="badge text-bg-light">
-                      0
-                    </span>
-                  </h4>
-                </div>
-              </div>
-              <div class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Bid">
-                <div class="col-3 inputField"> 
-                  <input type="text" class="form-control bid inputBold" placeholder="Bid" id="bid1" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
-                  <div class="invalid-feedback">
-                    Invalid count
-                  </div> 
-                </div>
-                <div class="col-3 inputField"> 
-                  <input type="text" class="form-control bid inputBold" placeholder="Bid" id="bid2" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
-                  <div class="invalid-feedback">
-                    Invalid count
-                  </div> 
-                </div>
-                <div class="col-3 inputField"> 
-                  <input type="text" class="form-control bid inputBold" placeholder="Bid" id="bid3" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
-                  <div class="invalid-feedback">
-                    Invalid count
-                  </div> 
-                </div>
-                <div class="col-3 inputField"> 
-                  <input type="text" class="form-control bid inputBold" placeholder="Bid" id="bid4" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
-                  <div class="invalid-feedback">
-                    Invalid count
-                  </div> 
-                </div>
-              </div>
-              <div class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Actual">
-                <div class="col-3 inputField"> 
-                  <input type="text" class="form-control actual inputBold" placeholder="Actual" id="actual1" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
-                  <div class="invalid-feedback">
-                    Invalid count
-                  </div> 
-                </div>
-                <div class="col-3 inputField"> 
-                  <input type="text" class="form-control actual inputBold" placeholder="Actual" id="actual2" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
-                  <div class="invalid-feedback">
-                    Invalid count
-                  </div> 
-                </div>
-                <div class="col-3 inputField"> 
-                  <input type="text" class="form-control actual inputBold" placeholder="Actual" id="actual3" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
-                  <div class="invalid-feedback">
-                    Invalid count
-                  </div> 
-                </div>
-                <div class="col-3 inputField"> 
-                  <input type="text" class="form-control actual inputBold" placeholder="Actual" id="actual4" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
-                  <div class="invalid-feedback">
-                    Invalid count
-                  </div> 
-                </div>
-              </div>
-              <div id="InputSubmit" class="row"> 
-                <div class="col-xs-1 col-sm-1 col-md-2"> 
-
-                </div> 
-                <div class="col-xs-10 col-sm-10 col-md-8"> 
-                  <div class="btn-group pt-2 pb-2"> 
-                    <div class="p-1"> 
-                      <button type="button" id="submitRundeButton" class="btn btn-primary">
-                        <i class="bi-box-arrow-in-down pe-1"></i>
-                        Finish round 
-                        <span id="submitRoundNumber">
-                          1
+                  <div id="gesamtpunktzahlen" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Total score">
+                    <div class="gesamtpunktzahl">
+                      
+                        <span id="punkte1" class="badge text-bg-light">
+                        0
                         </span>
-                      </button> 
-                    </div> 
-                    <div class="p-1" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Undo last round"> 
-                      <button type="button" class="btn btn-danger" id="undoButton" data-bs-toggle="modal" data-bs-target="#modalUndoRound" disabled="">
-                        <i class="bi-arrow-counterclockwise">
-
-                        </i>
-                      </button> 
-                    </div> 
-                  </div> 
-                </div> 
-                <div class="col-xs-1 col-sm-1 col-md-2"> 
-
-                </div> 
+                      
+                    </div>
+                    <div class="gesamtpunktzahl">
+                    
+                        <span id="punkte2" class="badge text-bg-light">
+                          0
+                        </span>
+                      
+                    </div>
+                    <div class="gesamtpunktzahl">
+                
+                        <span id="punkte3" class="badge text-bg-light">
+                          0
+                        </span>
+                      
+                    </div>
+                    <div class="gesamtpunktzahl">
+                      
+                        <span id="punkte4" class="badge text-bg-light">
+                          0
+                        </span>
+                      
+                    </div>
+                  </div>
+                  <div class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Bid">
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control schaetzunginput rundeninput inputBold" placeholder="Schätzung" id="bid1" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control schaetzunginput rundeninput inputBold" placeholder="Schätzung" id="bid2" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control schaetzunginput rundeninput inputBold" placeholder="Schätzung" id="bid3" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control schaetzunginput rundeninput inputBold" placeholder="Schätzung" id="bid4" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>
+                  </div>
+                  <div class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Actual">
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control stichinput rundeninput inputBold" placeholder="Stiche" id="actual1" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control stichinput rundeninput inputBold" placeholder="Stiche" id="actual2" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control stichinput rundeninput inputBold" placeholder="Stiche" id="actual3" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control stichinput rundeninput inputBold" placeholder="Stiche" id="actual4" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>
+                  </div>
+                <div id="InputSubmit" class=""> 
+                  
+                        <button type="button" id="submitRundeButton" class="btn btn-primary">
+                          <i class="bi-box-arrow-in-down pe-1"></i>
+                          Runde  
+                          <span class="aktuelleRundenzahl">
+                            1
+                          </span>
+                          eintragen
+                        </button> 
+                </div>
               </div>
             </div>
           </div>
@@ -261,7 +240,7 @@
         <div id="ResultsContainer" class="container text-center card bg-light ps-1 pe-2 pt-2 pb-2">
         </div>
       </div>
-      <div class="modal fade" id="modalCheckRuleMaxGuess" tabindex="-1" aria-labelledby="modalCheckRuleMaxGuessLabel" aria-hidden="true">
+      <!--<div class="modal fade" id="modalCheckRuleMaxGuess" tabindex="-1" aria-labelledby="modalCheckRuleMaxGuessLabel" aria-hidden="true">
          <div class="modal-dialog"> 
           <div class="modal-content"> 
             <div class="modal-header"> 
@@ -282,7 +261,7 @@
             </div> 
           </div> 
         </div> 
-      </div>
+      </div>-->
       <!--<div id="supportContainer" class="container text-cemter p-2">
         <div class="row">
           <div class="col-12 pt-3">
@@ -339,7 +318,6 @@
   <p>
     
   </p>
-  <button Id="testbutton"> Testenfskglhhhhhhhhhhhhh </button>
   <script src="test.js"></script>
 </body>
 
