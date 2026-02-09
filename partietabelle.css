@@ -1,0 +1,93 @@
+
+.bold{
+    font-weight: bold;
+}
+
+.matchColor {
+    color: green;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    padding: auto;
+    border: 1px solid black;
+}
+
+.align-content-center {
+    display: flex;
+    align-content: center;
+}
+
+.align-items-center {
+    display: flex;
+    align-items: center;
+
+}
+.align-self-center {
+    display: flex;
+    align-self: center;
+
+}
+
+.postition-relative{
+    position: relative;
+}
+
+.PunkteZeile{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    width: max-content;
+}
+
+.schaetzung-stiche{
+    display: flex;
+    flex-direction: column;
+    height: 40px;
+    font-size: small;
+}
+
+.pagerow{
+    width: 100vw;
+    height: auto;
+}
+
+#ResultsContainer{
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    height: auto;
+    width: max-content;
+    margin-inline: auto;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: lightgoldenrodyellow;
+}
+
+.rundenzahl{
+    display: flex;
+    align-self: left;
+    justify-self: left;
+    justify-content: center;
+    width: 30px;
+}
+
+.punktzahl{
+    padding: 3px;
+    width: 40px;
+
+}
+
+.punkteelement{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 5px;
+    border-right: 1px solid gray;
+    width:70px;
+
+
+}
