@@ -89,10 +89,19 @@ function baueVolleReiheElement(partie,runde,spielerindex){
                 </div>`
 }
 
-function submitRunde(){
+
+let TestButton = document.getElementById('testbutton')
+
+TestButton.onclick = function(){
+
+    console.log('hi')
+}
+
+let submitButton = document.getElementById('submitRundeButton')
+submitButton.onclick = function(){
     console.log('test')
     // Entnehme Eingaben
-
+    /*
     // Prüfe eingaben
 
     // Update Partie
@@ -100,8 +109,9 @@ function submitRunde(){
 
     // Baue die Punktetabelle neu
     neubauePunktetabelle(partie)
-
+    */
 }
+
 
 function neubauePunktetabelle(partie){
     let punktetabelle = document.getElementById("ResultsContainer")
@@ -112,4 +122,4 @@ function neubauePunktetabelle(partie){
 
 }
 
-function test(){console.log('test')}
+bauePunktetabelle(partie)

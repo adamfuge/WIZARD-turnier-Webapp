@@ -1,12 +1,8 @@
 
 
-<<<<<<< HEAD
-export let schaetzungen = [0,20,5,2]
-export let stiche = [1,20,4,1]
-=======
+
 export let schaetzungen = [0,2,5,2]
 export let stiche = [1,2,4,1]
->>>>>>> 9551be3b73441048310df3548e3a8b4c29a2b58c
 
 
 export function new_partie(tisch,spieler){
