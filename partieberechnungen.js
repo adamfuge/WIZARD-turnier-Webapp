@@ -1,27 +1,31 @@
-let partie = new_partie(tisch= "A",
-    spieler= [1,2,3])
-
-let schaetzungen = [0,2,5,2]
-let stiche = [1,2,4,1]
 
 
-function new_partie(tisch,spieler){
+export let schaetzungen = [0,2,5,2]
+export let stiche = [1,2,4,1]
+
+
+export function new_partie(tisch,spieler){
     let partie = {
-    tisch: "A",
+    tisch: tisch,
     spieler: spieler,
     punktetabelle: [new Array(spieler.length).fill(0)],
     letzte_runde: 0,
     aktuelle_runde: 1,
-    anzahl_richtiger_schätzungen: new Array(spieler.length).fill(0)
-    }
+    schaetzungen: [new Array(spieler.length).fill(0)],
+    stiche: [new Array(spieler.length).fill(0)],
+    geber: [,spieler[0]]
+    
+
+}
     if(partie.spieler.length==3 || partie.spieler.length==5) {partie.aktuelle_runde = 2 }
     return(partie)
 }
 
+
 /**Berechne die nächste Rundenzahl
 *@param  {Number} partie Das aktuelle Partieobjekt
 **/
-function naechste_runde(partie){
+export function naechste_runde(partie){
     "Berechne die nächste Rundenzahl"
     
     // validierung: Spieleranzahl
@@ -44,7 +48,24 @@ function naechste_runde(partie){
     
 } 
 
+/**Berechne den nächsten Geber und trage ihn ein
+*@param  {Number} partie Das aktuelle Partieobjekt
+**/
+export function naechster_geber(partie){
+    
+    // validierung: Spiel schon vorbei?
+    if(partie.aktuelle_runde == "ende"){
+        throw new Error("Spiel ist zuende")
+    }
+    
+    //Finde den Spielerindex des letzten Geber
+    let index_letzter_geber = partie.spieler.findIndex(spieler => spieler == partie.geber[partie.letzte_runde]) 
+    
+    let index_naechster_geber = (index_letzter_geber + 1) % partie.spieler.length
 
+    //aktuallisiere die partie um die aktuelle rundenzahl
+    partie.geber[partie.aktuelle_runde] = partie.spieler[index_naechster_geber]
+} 
 
 
 
@@ -53,7 +74,7 @@ function naechste_runde(partie){
 *@param  {Array} schaetzungen Ein Array mit den abgegebenen Schätzungen
 *@param  {Array} stiche Ein Array mit der tatsächlichen Stichanzahl
 **/
-function update_punktetabelle(partie,schaetzungen,stiche){
+export function update_punktetabelle(partie,schaetzungen,stiche){
     
     
     // validierung: Spiel vorbei?
@@ -61,14 +82,16 @@ function update_punktetabelle(partie,schaetzungen,stiche){
         throw new Error("Spiel ist zuende")
     }
     
+    // Trage Schätzungen und Stiche in partie ein
+    partie.schaetzungen[partie.aktuelle_runde] = schaetzungen
+    partie.stiche[partie.aktuelle_runde] = stiche
+
+
     partie.punktetabelle[partie.aktuelle_runde] = []
-    
     for(let i=0; i < partie.spieler.length; i++){
         if(schaetzungen[i] == stiche[i]){ 
             // Spieler hat richtig geschätzt: 20 Punkte plu 10 Punkte pro Stich
             partie.punktetabelle[partie.aktuelle_runde][i] = partie.punktetabelle[partie.letzte_runde][i] + 20 + 10*stiche[i] 
-            // richtige schätzungen mitzählen, für Tiebreaker 
-            partie.anzahl_richtiger_schätzungen[i] += 1
         }
         else{ 
             // Spieler hat falsch geschätzt: 10 Punkte abzug pro falsch geschätztem stich
@@ -76,22 +99,24 @@ function update_punktetabelle(partie,schaetzungen,stiche){
     }
 }
 
+/*
 /**Berechne die die punktzahl der aktuellen Runde EINES Spielers
  * Unbenutzt
- **/
-function berechne_partiepunkte_pro_spieler(punktesumme,schaetzung,stiche){
+ *
+export function berechne_partiepunkte_pro_spieler(punktesumme,schaetzung,stiche){
     "Berechne die die punktzahl der aktuellen Runde EINES Spielers"
     if(schaetzung == stiche){ punktesumme += 20 + 10*stiche }
     else{ punktesumme += -10*Math.abs(stiche-schaetzung) }
     return(punktesumme)
 }
+*/
 
 /** Tue alles um die partie für die nächste runde fertig zu machen
 *@param  {Number} partie Das aktuelle Partieobjekt
 *@param  {Array} schaetzungen Ein Array mit den abgegebenen Schätzungen
 *@param  {Array} stiche Ein Array mit der tatsächlichen Stichanzahl
 **/
-function update_partie(partie,schaetzungen,stiche){
+export function update_partie(partie,schaetzungen,stiche){
     "Tue alles um die partie für die nächste runde fertig zu machen"
     
     // validierung: Spiel vorbei?
@@ -101,6 +126,7 @@ function update_partie(partie,schaetzungen,stiche){
     
     update_punktetabelle(partie,schaetzungen,stiche)
     naechste_runde(partie)
+    naechster_geber(partie)
 }
 
 /**
@@ -108,7 +134,7 @@ function update_partie(partie,schaetzungen,stiche){
 *@param {object} partie  Die gespielte Partie
 *@return {Array}        Ein Array an objekten mit parametern tish, spieler, partiepunkte, turnierpunkte  
 **/
-function partie_auswerten(partie){
+export function partie_auswerten(partie){
     
     // validierung: Spiel wirklich vorbei?
     if(partie.aktuelle_runde != "ende"){
@@ -131,7 +157,7 @@ function partie_auswerten(partie){
  *@param  {Array} array Array an einträgen, die zu ranken sind
  *@return {Array}       Die Platzierungen (integers) in einem Array. Doppelte Einträge möglich.
  **/
-function rankings(array) {
+export function rankings(array) {
     return array
       .map((v, i) => [v, i])
       .sort((a, b) => b[0] - a[0])
@@ -144,16 +170,16 @@ function rankings(array) {
 *@param  {Number} rank  Die Platzierung eines Spielers
 *@return {Number}       Die resultierenden Turnierpunkte
 **/
-function turnierpunkte(rank){
+export function turnierpunkte(rank){
     const turnierpunkte_pro_platzierung = new Map([[1,45],[2,30],[3,20],[4,10],[5,5]])
     return turnierpunkte_pro_platzierung.get(rank)
 }
 
 /** Hilfsfunktion: gibt ein Array [o,1, ... , N-1] zurück
-*@param  {Number} N
+*@param  {Number} N 
 *@return {Array}     [o,1, ... , N-1]
 **/
-function range(N){
+export function range(N){
     let foo = [];
     for (let i = 0; i < N; i++) {
         foo.push(i);
@@ -165,7 +191,7 @@ function range(N){
  *@param {Array} arr    Input
  *@return {Array}       Array an gedoppelten Einträgen des Inputs
  **/
-const findDuplicates = (arr) => {
+export const findDuplicates = (arr) => {
   let sorted_arr = arr.slice().sort(); // You can define the comparing function here. 
   // JS by default uses a crappy string compare.
   // (we use slice to clone the array so the
@@ -183,12 +209,11 @@ const findDuplicates = (arr) => {
 *@param {object} partie  Die gespielte Partie
 * @return {Array}       Die Platzierungen der Spieler zB  [2, 3, 4, 1]
 **/
-function ermittle_platzierungen(partie){
+export function ermittle_platzierungen(partie){
     // Entferne nicht gespielte Runden aus der Punkte tabelle
     let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
     
     // Ermittle Platzierungen nach Partiepunkte-Endstand
-    let anzahl_richtiger_schaetzungen = new Array(spieler.length).fill(0)
     let absolute_ranks = rankings(punktetabelle_einfach[punktetabelle_einfach.length-1])
     
     // Prüfe auf Gleichplatzierungen und führe Tiebreaker1 für alle umkäpfte Plätze aus
@@ -218,7 +243,7 @@ function ermittle_platzierungen(partie){
 * @param {Number}   umkaempfte_platzierung Die Platzierung, die der tiebreakgewinner erhalten soll
 * @return {Array}       Die Platzierungen der Spieleruntermenge zB  [2, , , 3,4]
 **/
-function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
+export function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
     
     // Entferne nicht gespielte Runden aus der Punkte tabelle
     let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
@@ -264,7 +289,7 @@ function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_plat
 * @param {Number}   umkaempfte_platzierung Die Platzierung, die der tiebreakgewinner erhalten soll
 * @return {Array}       Die Platzierungen der Spieleruntermenge zB  [2, , , 3,4]
 **/
-function tiebreakerplatzhalter(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
+export function tiebreakerplatzhalter(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
     
     
     let absolute_ranks = []
@@ -274,6 +299,8 @@ function tiebreakerplatzhalter(partie,indices=range(partie.spieler.length),umkae
     
     return absolute_ranks
 }
+
+
 
 //console.log(rankings([300,200,300]))
 
