@@ -95,7 +95,7 @@
               </div>
               <div class="col-11 align-content-center p-0 pe-2">
                 <div class="container">
-                  <div id="playerRow" class="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Name">
+                  <div id="Spielernamen" class="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Name">
                     
                     <span id="player0" class="playerName">
                       a
@@ -143,7 +143,8 @@
                       
                     </div>
                   </div>
-                  <div class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Bid">
+                  <div class="inputtitel"> Angesagte Stiche</div>
+                  <div id='schaetzunginputFelder' class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Bid">
                     <div class="col-3 inputField"> 
                       <input type="text" class="form-control schaetzunginput rundeninput inputBold" placeholder="Schätzung" id="bid1" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
                       <div class="invalid-feedback hide">
@@ -169,7 +170,8 @@
                       </div> 
                     </div>
                   </div>
-                  <div class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Actual">
+                  <div class="inputtitel"> Tatsächliche Stiche</div>
+                  <div id='sticheinputFelder' class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Actual">
                     <div class="col-3 inputField"> 
                       <input type="text" class="form-control stichinput rundeninput inputBold" placeholder="Stiche" id="actual1" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
                       <div class="invalid-feedback hide">

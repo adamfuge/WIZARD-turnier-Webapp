@@ -1,11 +1,5 @@
 
 
-
-
-let schaetzungen = [0,2,5,2]
-let stiche = [1,2,4,1]
-
-
 function new_partie(tisch,spieler){
     let partie = {
     tisch: tisch,
@@ -436,7 +430,7 @@ function neubauePunktetabelle(partie){
     let punktetabelle = document.getElementById("ResultsContainer");
     let neue_punktetabelle = document.createElement("div");
     neue_punktetabelle.id = "ResultsContainer";
-    neue_punktetabelle.class = "container text-center card bg-light ps-1 pe-2 pt-2 pb-2";
+    neue_punktetabelle.className = "container text-center card bg-light ps-1 pe-2 pt-2 pb-2";
     console.log(neue_punktetabelle.class)
     punktetabelle.replaceWith(neue_punktetabelle);
     bauePunktetabelle(partie)
@@ -536,23 +530,78 @@ function resetSubmitButton(){
 }
 
 function baue_neu_gesamtpunktzahl(){
-    for(let i of range(partie.spieler.length)){
-        let punktzahl = document.getElementById(`punkte${i+1}`)
+    for(let i in partie.spieler){
+        let punktzahl = document.getElementById(`punkte${i}`)
         punktzahl.innerText = partie.punktetabelle[partie.letzte_runde][i]
         
         
         if(partie.punktetabelle[partie.letzte_runde][i] == partie.punktetabelle[partie.letzte_runde].reduce((a, b) => Math.max(a, b), -Infinity)){
-            punktzahl.parentElement.className += ' fuehrender'
+            punktzahl.className += ' fuehrender'
 
             }
-        else punktzahl.parentElement.classList.remove('fuehrender')
+        else punktzahl.classList.remove('fuehrender')
     }
+}
+
+function baue_inputcontainer(){
+    baue_spielernamen()
+    baue_gesamtpunktzahlen()
+    baue_inputs()
 }
 
 
 
+function baue_spielernamen(){
+    let reihe = document.getElementById('Spielernamen')
+    reihe.innerHTML = ''
+    console.log(reihe)
+    for(const i in partie.spieler){
+        reihe.innerHTML += `
+                    <span id="player${i}" class="playerName">
+                      ${partie.spieler[i]}
+                    </span>`
+    }
+}
 
+function baue_gesamtpunktzahlen(){
+    let reihe = document.getElementById('gesamtpunktzahlen')
+    reihe.innerHTML = ''
+    for(const i in partie.spieler){
+        reihe.innerHTML += `
+                    <span id="punkte${i}" class="gesamtpunktzahl badge text-bg-light">
+                      ${partie.punktetabelle[0][i]}
+                    </span>`
+    }
+}
 
+function baue_inputs(){
+    let reihe = document.getElementById('schaetzunginputFelder')
+    reihe.innerHTML = ''
+    for(const i in partie.spieler){
+        reihe.innerHTML += `
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control schaetzunginput rundeninput inputBold" placeholder="Ansage" id="schaetzung${i}" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>`
+
+    }
+
+    reihe = document.getElementById('sticheinputFelder')
+    reihe.innerHTML = ''
+    for(const i in partie.spieler){
+        reihe.innerHTML += `
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control stichinput rundeninput inputBold" placeholder="Stiche" id="stiche${i}" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this);" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>`
+
+    }
+
+}
 
 
 
@@ -575,8 +624,10 @@ function baue_neu_gesamtpunktzahl(){
 
 
 
+let schaetzungen = [0,2,5,2,4]
+let stiche = [1,2,4,1,4]
 
-let partie = new_partie('A',[1,2,3,4])
+let partie = new_partie('A',[1,2,3,4,5])
 
 update_partie(partie,schaetzungen,stiche)
 
@@ -584,5 +635,7 @@ const rundenzahlen_ohne_ende = [,,,[2,4,5,6,7,8,9,10,11,12],[1,3,5,7,9,11,12,13,
         ]
 
 bauePunktetabelle(partie)
+
+baue_inputcontainer()
 
 baue_neu_rundeninfo(partie)
