@@ -245,7 +245,7 @@ function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_plat
     let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
     
     // Zähle die Anzahl richtiger Schätzungen
-    let anzahl_richtiger_schaetzungen = new Array(spieler.length).fill(0)
+    let anzahl_richtiger_schaetzungen = new Array(partie.spieler.length).fill(0)
     for(const i of indices){
         for(const runde of range(punktetabelle_einfach.length-1)){
             if(punktetabelle_einfach[runde][i]<punktetabelle_einfach[runde+1][i])anzahl_richtiger_schaetzungen[i]++
@@ -404,12 +404,12 @@ submitButton.onclick = function(){
             schaetzungen[i] = Number(schaetzung_inputs[i].value)
         }
 
-        console.log('yay')
 
         // Prüfe eingaben
-
+        
         // Update Partie
         update_partie(partie,schaetzungen,stiche)
+
 
         // Baue die Punktetabelle neu
         neubauePunktetabelle(partie)
@@ -419,7 +419,12 @@ submitButton.onclick = function(){
 
         // Setze Inputs und Submitbutton zurück
         reset_inputs()
-        resetSubmitButton()
+        disableSubmitButton()
+
+        if(partie.aktuelle_runde == 'ende'){
+            ersetzeImputContainerMitEndstandContainer(regeln='Turnier')
+
+        }
 
         
     }
@@ -451,10 +456,8 @@ function validateNumber(self){
 
     checkAndCorrectValidInput(self)
     //überprüfe ob alle Felder gefüllt sind und färbe den 'Runde eintragen Knopf'
-    if(alleFelderGefuellt()){
-        let submitButton = document.getElementById('submitRundeButton')
-        submitButton.className += ' validSubmission'
-    }
+
+    activateSubmitButtonIfInputsValid()
     
 }
 
@@ -480,15 +483,11 @@ function validateNumber2(self){
                 for(const i of stiche_inputs){
                     if(i.value == ''){i.value=0}
                 }
-
-                //überprüfe ob alle Felder gefüllt sind und färbe den 'Runde eintragen Knopf'
-                if(alleFelderGefuellt()){
-                    let submitButton = document.getElementById('submitRundeButton')
-                    submitButton.className += ' validSubmission'
-                }
             }
         }
     }
+
+    activateSubmitButtonIfInputsValid()
 }
 
 function isPositiveInteger(string){
@@ -524,9 +523,15 @@ function reset_inputs(){
     }
 }
 
-function resetSubmitButton(){
+function disableSubmitButton(){
     let submitButton = document.getElementById('submitRundeButton')
-    submitButton.classList.remove('validSubmission')
+    submitButton.classList.remove('disabled')
+    submitButton.className += ' disabled'
+}
+
+function enableSubmitButton(){
+    let submitButton = document.getElementById('submitRundeButton')
+    submitButton.classList.remove('disabled')
 }
 
 function baue_neu_gesamtpunktzahl(){
@@ -600,20 +605,187 @@ function baue_inputs(){
                     </div>`
 
     }
-
 }
 
 
 
+function activateSubmitButtonIfInputsValid(regeln='Turnier'){
+    let inputs_valide = false
+
+    if(alleFelderGefuellt()){
+        inputs_valide = true
+
+        if(regeln=='Turnier'){
+        inputs_valide = checkInputsForTurnierregeln()
+        }
+    }
+
+    if(inputs_valide){
+        enableSubmitButton()
+    }
+    else disableSubmitButton()
+}
+
+function checkInputsForTurnierregeln(){
+    let inputs_valide = true
+
+    if(!alleFelderGefuellt()){throw new Error('Something went wrong')}
+
+    
+    inputs_valide = inputs_valide & checkStichzahlGleichRundenzahl()
+    
+    if(partie.aktuelle_runde >= 2){
+        inputs_valide = inputs_valide & checkSchaetzungenUngleichRundenzahl()
+    }
+
+    return inputs_valide
 
 
+}
+
+function checkStichzahlGleichRundenzahl(){
+    let stichsumme = 0 
+    let stiche_inputs = document.getElementsByClassName('stichinput')
+    for(const i of stiche_inputs){
+        if(i.value != ''){stichsumme += Number(i.value)}
+    }
+    return stichsumme == partie.aktuelle_runde
+}
+
+function checkSchaetzungenUngleichRundenzahl(){
+    let schaetzungensumme = 0 
+    let schaetzungen_inputs = document.getElementsByClassName('schaetzunginput')
+    for(const i of schaetzungen_inputs){
+        if(i.value != ''){schaetzungensumme += Number(i.value)}
+    }
+    return schaetzungensumme != partie.aktuelle_runde 
+}
 
 
+function ersetzeImputContainerMitEndstandContainer(regeln='Turnier'){
+    let pagerow = document.getElementById('InputContainer').parentElement
+    pagerowcode = `
+          <div id="EndstandContainer" class="container sticky-top text-center p-2 row fancy-bg" style="max-width: 100vw;">
+            <div class="row">`
+    pagerowcode += EndstandSpaltePlatzierungen()
+    pagerowcode += EndstandSpalteSpieler()
+    pagerowcode += EndstandSpaltePartiepunkte()
+    if(regeln=='Turnier') {
+        pagerowcode += EndstandSpalteTurnierpunkte()
+        }
+    
+    pagerowcode += `
+    </div>`
 
+    
+    if(regeln=='Turnier') {
+        pagerowcode += EndstandSpielAbschliessenButton()
+        }
+    else pagerowcode += EndstandNeuePartieButton()
+    
+    pagerowcode += `
+    </div>`
 
+    pagerow.innerHTML = pagerowcode
+    
 
+    SpielAbschliessen = document.getElementById('SpielAbschliessen')
+    SpielAbschliessen.onclick = function(){
+        if(partie.aktuelle_runde='ende'){
+            let spielergebnisse = partie_auswerten(partie)
+        
+            console.log('Hier würde ich eine POST schreiben, wen ich wüsste wie')
+        }
+}
+    
+}
 
+function EndstandSpaltePlatzierungen(){
+    code = `
+            <div id='platzierungenspalte' class='endstandspalte'>
+              <div class='endstandspaltenheader'>
+                Platz
+              </div>`
+    for(i of range(partie.spieler.length))
+        code += `
+              <div id='platz${i+1}' class="endstandspaltenelement">
+                ${i+1}
+              </div>`
+    code += `
+    </div>`
 
+    return code
+}
+
+function EndstandSpalteSpieler(){
+    code = `
+            <div id='spielerspalte' class='endstandspalte'>
+              <div class='endstandspaltenheader'>
+                Spieler
+              </div>`
+    platzierungen = ermittle_platzierungen(partie)
+    for(i of range(partie.spieler.length)){
+        spielerindex = platzierungen.findIndex(p => p == i+1)
+        code += `
+              <div id='spielerplatz${i+1}' class="endstandspaltenelement">
+                ${partie.spieler[spielerindex]}
+              </div>`
+        }
+    code += `
+    </div>`
+
+    return code
+}
+
+function EndstandSpaltePartiepunkte(){
+    code = `
+            <div id='ppspalte' class='endstandspalte'>
+              <div class='endstandspaltenheader'>
+                Partiepunkte
+              </div>`
+    platzierungen = ermittle_platzierungen(partie)
+    for(i of range(partie.spieler.length)){
+        spielerindex = platzierungen.findIndex(p => p == i+1)
+        code += `
+              <div id='ppplatz${i+1}' class="endstandspaltenelement">
+                ${partie.punktetabelle[partie.letzte_runde][spielerindex]}
+              </div>`
+        }
+    code += `
+    </div>`
+
+    return code
+}
+
+function EndstandSpalteTurnierpunkte(){
+    code = `
+            <div id='ppspalte' class='endstandspalte'>
+              <div class='endstandspaltenheader'>
+                Turnierpunkte
+              </div>`
+    for(i of range(partie.spieler.length)){
+        code += `
+              <div id='tpplatz${i+1}' class="endstandspaltenelement">
+                ${turnierpunkte(i+1)}
+              </div>`
+        }
+    code += `
+    </div>`
+
+    return code
+}
+
+function EndstandNeuePartieButton(){
+    return `
+    <button type="button" id="newGameButton" class="btn btn-light" onclick="load('s1')">
+                      <i class="bi-stars pe-1">
+                      </i>Neue Partie</button>`
+}
+
+function EndstandSpielAbschliessenButton(){
+    return `
+           <button type="button" id="SpielAbschliessen" > Partie beenden und absenden </button>`
+}
 
 
 
@@ -627,15 +799,27 @@ function baue_inputs(){
 let schaetzungen = [0,2,5,2,4]
 let stiche = [1,2,4,1,4]
 
-let partie = new_partie('A',[1,2,3,4,5])
+let partie = new_partie('A',['Adam ','Bdam','Cdam'])
 
 update_partie(partie,schaetzungen,stiche)
+
+update_partie(partie,schaetzungen,stiche)
+update_partie(partie,schaetzungen,stiche)
+update_partie(partie,schaetzungen,stiche)
+update_partie(partie,schaetzungen,stiche)
+update_partie(partie,schaetzungen,stiche)
+update_partie(partie,schaetzungen,stiche)
+update_partie(partie,schaetzungen,stiche)
+update_partie(partie,schaetzungen,stiche)
+
 
 const rundenzahlen_ohne_ende = [,,,[2,4,5,6,7,8,9,10,11,12],[1,3,5,7,9,11,12,13,14,15], [2,4,6,8,10,12,14,16,18,20]
         ]
 
 bauePunktetabelle(partie)
 
+
 baue_inputcontainer()
 
 baue_neu_rundeninfo(partie)
+
