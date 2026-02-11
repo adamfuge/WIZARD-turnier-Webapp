@@ -283,3 +283,7 @@ button.disabled{
     color: black;
     border:black solid 1px;
 }
+
+#SpielAbschliessen:hover{
+    background-color: rgb(255, 170, 0);
+}

@@ -389,46 +389,6 @@ function baueVolleReiheElement(partie,runde,spielerindex){
 
 
 
-let submitButton = document.getElementById('submitRundeButton')
-submitButton.onclick = function(){
-    
-    if(alleFelderGefuellt()){
-        
-        // Entnehme Eingaben
-        let schaetzung_inputs = document.getElementsByClassName('schaetzunginput')
-        let stich_inputs = document.getElementsByClassName('stichinput')
-        let schaetzungen = []
-        let stiche = []
-        for(let i in partie.spieler){
-            stiche[i] = Number(stich_inputs[i].value)
-            schaetzungen[i] = Number(schaetzung_inputs[i].value)
-        }
-
-
-        // Prüfe eingaben
-        
-        // Update Partie
-        update_partie(partie,schaetzungen,stiche)
-
-
-        // Baue die Punktetabelle neu
-        neubauePunktetabelle(partie)
-        
-        // Baue die Rundeninfos neu
-        baue_neu_rundeninfo(partie)
-
-        // Setze Inputs und Submitbutton zurück
-        reset_inputs()
-        disableSubmitButton()
-
-        if(partie.aktuelle_runde == 'ende'){
-            ersetzeImputContainerMitEndstandContainer(regeln='Turnier')
-
-        }
-
-        
-    }
-}
 
 
 function neubauePunktetabelle(partie){
@@ -787,6 +747,148 @@ function EndstandSpielAbschliessenButton(){
            <button type="button" id="SpielAbschliessen" > Partie beenden und absenden </button>`
 }
 
+function baueInputUndResultsContainer(){
+    let block = document.getElementById('blockContainer')
+    block.innerHTML = `
+    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-1 space" id="spaceStart">
+			</div>
+      
+      <div class="pagerow">
+			  <div class="col-xs-12 col-sm-12 col-md-12 col-lg-10" id="block">
+          <div id="InputContainer" class="container sticky-top text-center p-2 " style="max-width: 100vw;">
+            <div class="row">
+              <div class="col-1 align-self-center p-0">
+                <div id="rundeninfo">
+                  Runde
+                  <span class="aktuelleRundenzahl">
+                    1
+                  </span>
+                </div>
+              </div>
+              <div class="container">
+                <div id="Spielernamen" class="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Name">
+                </div>
+                <div id="gesamtpunktzahlen" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Total score">
+                </div>
+                <div class="inputtitel"> 
+                  Angesagte Stiche
+                </div>
+                <div id='schaetzunginputFelder' class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Bid">
+                </div> 
+                <div class="inputtitel"> 
+                  Tatsächliche Stiche
+                </div>
+                <div id='sticheinputFelder' class="row" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Actual">
+                </div>
+              <div id="InputSubmit" class=""> 
+                <button type="button" id="submitRundeButton" class="btn btn-primary disabled" >
+                  <i class="bi-box-arrow-in-down pe-1"></i>
+                  Runde  
+                  <span class="aktuelleRundenzahl">
+                    1
+                  </span>
+                  eintragen
+                </button> 
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <!--<div class="modal fade" id="modalUndoRound" tabindex="-1" aria-labelledby="modalUndoRoundLabel" aria-hidden="true"> 
+        <div class="modal-dialog"> 
+          <div class="modal-content"> 
+            <div class="modal-header"> 
+              <h1 class="modal-title fs-5" id="modalUndoRoundLabel">
+                Undo last round?
+              </h1> 
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
+
+              </button> 
+            </div> 
+            <div id="modalUndoRoundBody" class="modal-body">
+              Do you really want to undo last round? 
+            </div> 
+            <div class="modal-footer"> 
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                No
+              </button> 
+              <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="undoRound()">
+                Yes, undo
+              </button> 
+            </div> 
+          </div> 
+        </div> 
+      </div>-->
+      <div class="pagerow"> 
+        <div id="ResultsContainer" class="container text-center card bg-light ps-1 pe-2 pt-2 pb-2">
+        </div>
+      </div>`
+
+    // Definiere erst onclickfunktion, wenn btton existier. sonst fehler
+    let submitButton = document.getElementById('submitRundeButton')
+    submitButton.onclick = function(){
+        
+        if(alleFelderGefuellt()){
+            
+            // Entnehme Eingaben
+            let schaetzung_inputs = document.getElementsByClassName('schaetzunginput')
+            let stich_inputs = document.getElementsByClassName('stichinput')
+            let schaetzungen = []
+            let stiche = []
+            for(let i in partie.spieler){
+                stiche[i] = Number(stich_inputs[i].value)
+                schaetzungen[i] = Number(schaetzung_inputs[i].value)
+            }
+
+
+            // Prüfe eingaben
+            
+            // Update Partie
+            update_partie(partie,schaetzungen,stiche)
+
+
+            // Baue die Punktetabelle neu
+            neubauePunktetabelle(partie)
+            
+            // Baue die Rundeninfos neu
+            baue_neu_rundeninfo(partie)
+
+            // Setze Inputs und Submitbutton zurück
+            reset_inputs()
+            disableSubmitButton()
+
+            if(partie.aktuelle_runde == 'ende'){
+                ersetzeImputContainerMitEndstandContainer(regeln='Turnier')
+
+            }
+
+            
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -815,6 +917,8 @@ update_partie(partie,schaetzungen,stiche)
 
 const rundenzahlen_ohne_ende = [,,,[2,4,5,6,7,8,9,10,11,12],[1,3,5,7,9,11,12,13,14,15], [2,4,6,8,10,12,14,16,18,20]
         ]
+
+baueInputUndResultsContainer()
 
 bauePunktetabelle(partie)
 
