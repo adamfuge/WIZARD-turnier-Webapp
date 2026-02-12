@@ -159,7 +159,7 @@ function update_partie(partie,schaetzungen,stiche){
 function partie_auswerten(partie){
     
     // validierung: Spiel wirklich vorbei?
-    if(partie.aktuelle_runde != "ende"){
+    if(partie.aktuelle_runde != undefined){
         throw new Error("Spiel noch nicht zuende")
     }
     
@@ -170,7 +170,8 @@ function partie_auswerten(partie){
         tisch: partie.tisch,
         spieler: partie.spieler[i],
         turnierpunkte: rankings(partie.punktetabelle[partie.letzte_runde]).map(turnierpunkte)[i],
-        partiepunkte: partie.punktetabelle[partie.letzte_runde][i]
+        partiepunkte: partie.punktetabelle[partie.letzte_runde][i],
+        zeitpunkt: + new Date()
 }
     return partie_ergebnisse
 }
@@ -354,7 +355,6 @@ function bauePunktetabelle(partie){
         }
     }
 
-    console.log(rundenzahlen_ohne_ende)
     
     for(const i of rundenzahlen_nach_regeln){
         
@@ -443,7 +443,6 @@ function neubauePunktetabelle(partie){
     let neue_punktetabelle = document.createElement("div");
     neue_punktetabelle.id = "ResultsContainer";
     neue_punktetabelle.className = "container text-center card bg-light ps-1 pe-2 pt-2 pb-2";
-    console.log(neue_punktetabelle.class)
     punktetabelle.replaceWith(neue_punktetabelle);
     bauePunktetabelle(partie)
 
@@ -685,18 +684,10 @@ function ersetzeImputContainerMitEndstandContainer(){
     
     if(partie.regeln=='Turnier') {
         pagerowcode += EndstandSpielAbschliessenButton()
-        SpielAbschliessen = document.getElementById('SpielAbschliessen')
-        SpielAbschliessen.onclick = function(){
-            if(partie.aktuelle_runde='ende'){
-                let spielergebnisse = partie_auswerten(partie)
-            
-                console.log(spielergebnisse)
-            }
-        }
+        
     }
     else {
         pagerowcode += EndstandNeuePartieButton()
-        
     }
     
     pagerowcode += `
@@ -704,6 +695,35 @@ function ersetzeImputContainerMitEndstandContainer(){
 
     pagerow.innerHTML = pagerowcode
     
+
+    if(partie.regeln=='Turnier') {
+        SpielAbschliessen = document.getElementById('SpielAbschliessen')
+        SpielAbschliessen.onclick = function(){
+            if(partie.aktuelle_runde != undefined){throw new Error('Partie scheint noch nicht vorbei zu sein')}
+
+            let spielergebnisse = partie_auswerten(partie)
+
+
+            //////////////////////////////////////////////////////
+            // Sophie, Max, Federico, Mathias
+            // hier soll die Post request von spielergebnisse hin
+            //////////////////////////////////////////////////////
+            console.log(spielergebnisse)
+            //////////////////////////////////////////////////////
+            //
+            //////////////////////////////////////////////////////
+        
+        }
+    }
+    else {
+        let neuepartiebuttons = document.getElementsByClassName('neuepartiebutton')
+        for(const neuepartiebutton of neuepartiebuttons){
+            neuepartiebutton.onclick = LadeNeuePartieErstellen
+        }
+        
+        
+    }
+
     leereNavContainer()
 
     
@@ -919,7 +939,11 @@ function baueInputUndResultsContainer(){
             reset_inputs()
             disableSubmitButton()
 
-            if(partie.aktuelle_runde == 'ende'){
+            console.log(partie.aktuelle_runde) 
+            console.log(partie.aktuelle_runde == undefined)
+
+
+            if(partie.aktuelle_runde == undefined){
                 ersetzeImputContainerMitEndstandContainer()
 
             }
@@ -1152,22 +1176,43 @@ function LadeNeuePartieErstellen(){
     bauePartieerstellenContainer()
 }
 
-neuepartiebuttons = document.getElementsByClassName('neuepartiebutton')
+let neuepartiebuttons = document.getElementsByClassName('neuepartiebutton')
 for(const neuepartiebutton of neuepartiebuttons){
     neuepartiebutton.onclick = LadeNeuePartieErstellen
 }
 
 
 
+function TestLadeEndstand(){
+    let schaetzungen = [0,2,5,2,4]
+    let stiche = [1,2,4,1,4]
+    
+    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+    
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+
+    baueInputUndResultsContainer()
+
+    bauePunktetabelle(partie)
 
 
+    baue_inputcontainer()
+
+    baue_neu_rundeninfo(partie)
+    baueNavContainer()
+
+}
 
 
-
-
-
-
-bauePartieerstellenContainer()
+TestLadeEndstand()
 
 
 
@@ -1179,22 +1224,6 @@ bauePartieerstellenContainer()
 ////////////////// Führe aus
 
 /*
-
-let schaetzungen = [0,2,5,2,4]
-let stiche = [1,2,4,1,4]
-
-let partie = new_partie('A',['Adam ','Bdam','Cdam'])
-
-update_partie(partie,schaetzungen,stiche)
-
-update_partie(partie,schaetzungen,stiche)
-update_partie(partie,schaetzungen,stiche)
-update_partie(partie,schaetzungen,stiche)
-update_partie(partie,schaetzungen,stiche)
-update_partie(partie,schaetzungen,stiche)
-update_partie(partie,schaetzungen,stiche)
-update_partie(partie,schaetzungen,stiche)
-update_partie(partie,schaetzungen,stiche)
 
 
 const rundenzahlen_ohne_ende = [,,,[2,4,5,6,7,8,9,10,11,12],[1,3,5,7,9,11,12,13,14,15], [2,4,6,8,10,12,14,16,18,20]
