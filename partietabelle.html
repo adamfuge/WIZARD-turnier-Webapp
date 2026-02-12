@@ -20,149 +20,62 @@
   
 <body>
   <div id="title" class="d-flex justify-content-center p-2 bg-wizardscore">
-    Hier kommt der header hin
-  </div>
-  <div id="navContainer" class="container">
-  	<div class="row"> 	
-    	<div class="col-xs-0 col-sm-0 col-md-2 col-lg-3"></div> 
-      	<div class="col-xs-12 col-sm-12 col-md-8 col-lg-6"> 
-          <nav class="navbar navbar-expand-lg marginBottom" style="background-color: white; white-space:nowrap;"> 
-            <div class="container-fluid"> 
-              <!--<a class="navbar-brand" href="#"></a>!--> <ul class="navbar-nav me-auto"> 
-              <li class="nav-item"> 
-                <div id="aktuelleRundeninfo"> 
-                  <div class="d-flex" style="align-items:center;"> 
-                    <div style="padding-right:5px;">
-                    	<span id="roundInfo" style="font-size:1.3rem;font-weight:bold;">
-                          Runde 
-                          <span class="aktuelleRundenzahl">
-                            2
-                          </span>
-                      </span>
-                    </div> 
-                    <div>
-                      <span id="roundInfo2">
-                        Jeder Spieler bekommt 
-                        <span class="aktuelleRundenzahl">
-                          2
-                        </span> 
-                        Karten
-                      </span>
-                    </div> 
-                  </div> 
-                </div> 
-              </li> 
-              </ul> 
-              <div class="d-flex"> 
-                <ul class="navbar-nav me-auto"> 
-                  <li class="nav-item"> 
-                    <button type="button" id="newGameButton" class="btn btn-light" onclick="load('s1')">
-                      <i class="bi-stars pe-1">
-                      </i>Neue Partie</button> 
-                  </li>
-                </ul> 
-                <div class="btn-group" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Sprache"> 
-                  <button type="button" id="langButton" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" hidden=""> 
-                    <i class="bi-globe">
-
-                    </i> 
-                  </button> 
-                </div> 
-              </div> 
-            </div> 
-          </nav> 
-        </div> 
-        <div class="col-xs-0 col-sm-0 col-md-2 col-lg-3">
-
-        </div> 
-      </div>
-  </div>
-  <div id="blockContainer" class="container text-center">
-		
-	
-      <!--<div class="modal fade" id="modalCheckRuleMaxGuess" tabindex="-1" aria-labelledby="modalCheckRuleMaxGuessLabel" aria-hidden="true">
-         <div class="modal-dialog"> 
-          <div class="modal-content"> 
-            <div class="modal-header"> 
-              <h1 class="modal-title fs-5" id="modalCheckRuleMaxGuessLabel">
-                Number of tricks exceeds round number
-              </h1> 
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-
-              </button> 
-            </div> 
-            <div id="modalCheckRuleMaxGuessBody" class="modal-body"> 
-              Invalid total of actual tricks. The maximum number of tricks to be taken in this round is x 
-            </div> 
-            <div class="modal-footer"> 
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Close
-              </button> 
-            </div> 
-          </div> 
-        </div> 
-      </div>-->
-      <!--<div id="supportContainer" class="container text-cemter p-2">
-        <div class="row">
-          <div class="col-12 pt-3">
-            <div class="row">
-              <div class="col-12 pt-3">
-                <button type="button" id="sendFeedbackButton" class="btn btn-light" data-bs-toggle="modal" data-bs-target="#modalFeedback">
-                  <i class="bi-envelope-paper pe-1"></i>
-                  Feedback
-                </button>
-              </div>
-            </div>
-          </div>
+    <div>
+      <i data-lucide="wand-sparkles"> 
+      </i>
+    </div>
+    <div style="margin-right:auto">
+      WIZARD Punktetabelle
+    </div>
+    <div style="display: flex; gap: 3px">
+    <button type="button" id="Turnieruebersicht" class="row disabled" onclick="console.log('Hier könnte Ihre weiterleitung stehen, leider existiert sie aber noch nicht.')">
+      <div class="row">
+        <div style="height: 1.4rem; margin:3px">
+          <i data-lucide="table-2">
+          </i>
+        </div>
+        <div style="height: fit-content; font-weight: 600;">
+          Turnierübersicht
         </div>
       </div>
-      <div class="modal fade" id="modalFeedback" tabindex="-1" aria-labelledby="modalFeedbackLabel" aria-hidden="true"> 
-        <div class="modal-dialog"> 
-          <div class="modal-content"> 
-            <div class="modal-header"> 
-              <h1 class="modal-title fs-5" id="modalFeedbackLabel">
-                Send feedback or found a problem?
-              </h1> 
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-
-              </button> 
-            </div> 
-            <div id="modalFeedbackBody" class="modal-body"> 
-              <div class="form-floating">
-                <textarea class="form-control" placeholder="Leave a comment here" id="feedbacktext" maxlength="512" style="height: 300px; resize: none;">
-
-                </textarea>
-                <label for="feedbacktext">
-                  Feedback
-                </label>
-              </div> 
-            </div> 
-            <div class="modal-footer"> 
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                Cancel
-              </button> 
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="sendFeedback()">
-                Send
-              </button> 
+    </button> 
+    <button type="button" class="neuepartiebutton row" onclick="load('s1')">
+      <div class="row">
+        <div style="height: 1.4rem; margin:3px">
+          <i data-lucide="scroll-text">
+          </i>
+        </div>
+        <div style="height: fit-content; font-weight: 600;">
+          Neue Partie
+        </div>
+      </div>
+    </button> 
+    </div>
+  </div>
+  <div id="navContainer" class="container">
+	  <div class="pagerow"> 	
+      <div class="col-xs-12 col-sm-12 col-md-8 col-lg-6"> 
+        <nav class="navbar navbar-expand-lg marginBottom" style="background-color: white; white-space:nowrap;"> 
+          <div class="container-fluid">
+            <div id="aktuelleRundeninfo" class="row">           
             </div> 
           </div> 
-        </div> 
-      </div>-->
+        </nav> 
+      </div> 
     </div>
-    <div class="col-xs-12 col-sm-12 col-md-12 col-lg-1 space" id="spaceEnd">
-		</div>
-	
   </div>
+  <div id="blockContainer" class="container text-center">
+  </div>
+  
 
   <footer id="footer">
-    <div id="imagePlaceholder"></div>  
+    <div id="imagePlaceholder ">
+      <i data-lucide="github"></i>
+    </div>  
   </footer>
 
     
 
-  <p>
-    
-  </p>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>lucide.createIcons();</script>
   <script src="test.js"></script>

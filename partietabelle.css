@@ -10,6 +10,7 @@
 .row {
     display: flex;
     flex-direction: row;
+    align-items: center;
     padding: auto;
 }
 
@@ -55,7 +56,9 @@
     align-content: center;
     width: 100vw;
     height: auto;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    gap: 10px;
 }
 
 #ResultsContainer{
@@ -76,10 +79,11 @@
     border: none;
 }
 
-#InputContainer,#EndstandContainer{
+#InputContainer,#EndstandContainer,#PartieerstellenContainer{
     display: flex;
     flex-direction: column;
     align-content: center;
+    align-items: center;
     height: auto;
     width: max-content;
     margin-inline: auto;
@@ -199,7 +203,7 @@
 #footer{
     height: 50px;
     width: 100vw;
-    background-color: gray;
+    background-color: lightgrey;
     display:flex;
     justify-content: center;
     align-items: center;
@@ -226,6 +230,7 @@ button{
     background-color: blue;
     color: white;
     padding: 0.5rem;
+    font-weight: 600;
 }
 
 button:not(.disabled):hover{
@@ -287,3 +292,40 @@ button.disabled{
 #SpielAbschliessen:hover{
     background-color: rgb(255, 170, 0);
 }
+
+#SpielernamenInputs{
+    display: flex;
+    flex-direction: column;
+    height: 10rem;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+h5{
+    margin-top: 3px;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+.partieerstellenelement{
+    width: fit-content;
+    margin: 5px;
+
+}
+
+#title{
+    background-color: lightgrey;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: black;
+    font-weight: 600;
+    gap: 10px;
+    height: fit-content;
+    padding: 15px;
+    flex-wrap: wrap;
+
+}
+
