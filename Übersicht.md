@@ -68,7 +68,6 @@ Eine fertige Partie wird als Array von JSONs gespeichert mit Parametern:
 - tisch, ein Character wie "A"
 - spieler, eine Zahl 01 bis 99, diese identifiziert den Spieler
 - partiepunkte, ein Array mit Zahlen, die endpunkzahl der spieler der partie
-
 - turnierpunkte, ein Array mit Zahlen, die gewonnene turnierpunkte der Spieler
 
 ### Turnierstand
