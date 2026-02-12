@@ -1,0 +1,18 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+  db:
+    image: postgres
+    restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: pass
+
+  adminer: # a database management tool
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
