@@ -385,6 +385,9 @@ function baueLeereReihe(partie,i){
 
               </div>
             </div>
+          </div>
+          <div style='margin-left: auto'>
+            ${i==partie.aktuelle_runde ? partie.geber[i]:''}
           </div>`
 }
 
@@ -402,6 +405,10 @@ function baueVolleReihe(partie,reihenzahl){
     reihe += `
               </div>
             </div>
+          </div>
+          <div style='width:10px'></div>
+          <div style='margin-left: auto'>
+            ${partie.geber[reihenzahl]}
           </div>`
     return reihe
 }

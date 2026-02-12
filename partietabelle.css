@@ -39,7 +39,7 @@
     flex-direction: row;
     align-items: center;
     justify-items: center;
-    width: max-content;
+    width: auto;
 }
 
 .schaetzung-stiche{
