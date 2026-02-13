@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WIZARD</title>
+  <link rel='stylesheet' href='partietabelle.css'>
+  <script type="importmap">
+    {
+      "imports": {
+        "partieberechnungen": "./partieberechnungen.js"
+      }
+    }
+  </script>
+    <script src="https://code.jquery.com/jquery-4.0.0.js"></script>
+</head>
+
+  
+  
+<body>
+  <div id="title" class="d-flex justify-content-center p-2 bg-wizardscore">
+    <div>
+      <i data-lucide="wand-sparkles"> 
+      </i>
+    </div>
+    <div style="margin-right:auto">
+      WIZARD Punktetabelle
+    </div>
+    <div style="display: flex; gap: 3px">
+    <button type="button" id="Turnieruebersicht" class="row disabled" onclick="console.log('Hier könnte Ihre weiterleitung stehen, leider existiert sie aber noch nicht.')">
+      <div class="row">
+        <div style="height: 1.4rem; margin:3px">
+          <i data-lucide="table-2">
+          </i>
+        </div>
+        <div style="height: fit-content; font-weight: 600;">
+          Turnierübersicht
+        </div>
+      </div>
+    </button> 
+    <button type="button" class="neuepartiebutton row" onclick="load('s1')">
+      <div class="row">
+        <div style="height: 1.4rem; margin:3px">
+          <i data-lucide="scroll-text">
+          </i>
+        </div>
+        <div style="height: fit-content; font-weight: 600;">
+          Neue Partie
+        </div>
+      </div>
+    </button> 
+    </div>
+  </div>
+  <div id="navContainer" class="container">
+	  <div class="pagerow"> 	
+      <div class="col-xs-12 col-sm-12 col-md-8 col-lg-6"> 
+        <nav class="navbar navbar-expand-lg marginBottom" style="background-color: white; white-space:nowrap;"> 
+          <div class="container-fluid">
+            <div id="aktuelleRundeninfo" class="row">           
+            </div> 
+          </div> 
+        </nav> 
+      </div> 
+    </div>
+  </div>
+  <div id="blockContainer" class="container text-center">
+  </div>
+  
+
+  <footer id="footer">
+    <div id="imagePlaceholder ">
+      <i data-lucide="github"></i>
+    </div>  
+  </footer>
+
+    
+
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
+  <script src="test.js"></script>
+</body>
+
+</html>
