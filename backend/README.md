@@ -35,6 +35,7 @@ After startup open http://localhost:5000 in your browser to see the frontend.
 ## Database
 - The PostgreSQL server runs in a container; its data is stored in a Docker volume so it persists across restarts.
 - The project exposes a small helper endpoint to create the tables if they are missing (see Endpoints below).
+- If you want to completely remove the database, you can delete the volume in docker
 
 ## Endpoints (from `app.py`)
 - `GET /` — Serve the frontend `index.html` from the `frontend` folder.
