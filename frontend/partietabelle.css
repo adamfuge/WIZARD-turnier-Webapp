@@ -117,6 +117,7 @@
     align-items: center;
     padding: 5px;
     border-right: 1px solid gray;
+    border-left: 1px solid gray;
     width:70px;
 
 }

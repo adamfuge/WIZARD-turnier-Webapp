@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menü</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: system-ui, Arial, sans-serif;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      padding: 12px 18px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .backround {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: linear-gradient(black, white);
+        background-image: url("wizardgame.jpg");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 100vw;
+        height: 100vh;
+        width: 100vw;
+    }
+
+  </style>
+  
+</head>
+
+<body>
+   <div class="backround">
+    <div class="buttons">
+    <button id="turnierbutton">Turniertabelle</button>
+    <button id="partybutton">Partie eröffnen</button>
+  </div>
+
+
+  </div>
+    
+  <script>
+    document.getElementById("turnierbutton").addEventListener("click", () => {
+      window.location.href = "turnier_platzhalter.html";
+    });
+
+    document.getElementById("partybutton").addEventListener("click", () => {
+      window.location.href = "partieoeffnen_platzhalter.html";
+    });
+  </script>
+</body>
+</html>
