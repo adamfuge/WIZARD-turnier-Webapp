@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 load_dotenv()  # Load environment variables from .env file
 
 
-from flask import Flask
+from flask import Flask, send_from_directory
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='../frontend/static', static_url_path='/static')
 
 def get_hit_count():
     return 5
@@ -24,9 +24,8 @@ def get_db_connection():
     return conn
 
 @app.route('/')
-def hello():
-    count = get_hit_count()
-    return f'Hello World! I have been seen {count} times.\n'
+def serve_index():
+    return send_from_directory('../frontend', 'index.html')
 
 #more for debugging, get current content of database
 @app.route('/dump_db')
