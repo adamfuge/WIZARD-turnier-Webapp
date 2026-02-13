@@ -56,3 +56,8 @@ curl http://localhost:5000/dump_db
 uv add <package>
 ```
 
+## TODO
+- Implement more endpoints needed by the frontend
+- try to make database management a bit easier
+    - Maybe implement a very crude admin view for that
+
