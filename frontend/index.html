@@ -31,7 +31,7 @@
         justify-content: center;
         align-items: center;
         background-image: linear-gradient(black, white);
-        background-image: url("wizardgame.jpg");
+        background-image: url("/static/wizardgame.jpg");
         background-position: center;
         background-repeat: no-repeat;
         background-size: 100vw;
@@ -48,6 +48,7 @@
     <div class="buttons">
     <button id="turnierbutton">Turniertabelle</button>
     <button id="partybutton">Partie eröffnen</button>
+    <button id="testbutton">Bring mich zum Matchview</button>
   </div>
 
 
@@ -60,6 +61,10 @@
 
     document.getElementById("partybutton").addEventListener("click", () => {
       window.location.href = "partieoeffnen_platzhalter.html";
+    });
+    //the testbutton navigates to /match_view, which is implemented in the backend
+    document.getElementById("testbutton").addEventListener("click", () => {
+      window.location.href = "/match_view";
     });
   </script>
 </body>

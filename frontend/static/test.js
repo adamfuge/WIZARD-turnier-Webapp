@@ -703,15 +703,21 @@ function ersetzeImputContainerMitEndstandContainer(){
 
             let spielergebnisse = partie_auswerten(partie)
 
-
-            //////////////////////////////////////////////////////
-            // Sophie, Max, Federico, Mathias
-            // hier soll die Post request von spielergebnisse hin
-            //////////////////////////////////////////////////////
-            console.log(spielergebnisse)
-            //////////////////////////////////////////////////////
-            //
-            //////////////////////////////////////////////////////
+            //POST the spielergebnisse to the backend
+            fetch('/post_match_result', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(spielergebnisse),
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
         
         }
     }
