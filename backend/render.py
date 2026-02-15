@@ -5,6 +5,3 @@ from app import app
 
 load_dotenv()
 
-@app.route('/')
-def serve_index():
-    return send_from_directory('../frontend', 'index.html')
