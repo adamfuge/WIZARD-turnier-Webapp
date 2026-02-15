@@ -174,6 +174,14 @@ def init_db():
             is_occupied BOOLEAN DEFAULT FALSE
         );
 
+        CREATE TABLE IF NOT EXISTS matches (
+            id SERIAL PRIMARY KEY,
+            table_id INTEGER NOT NULL REFERENCES tables(id),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            finished_at TIMESTAMP,
+            finished BOOLEAN DEFAULT FALSE
+        );
+
         CREATE TABLE IF NOT EXISTS players (
             id SERIAL PRIMARY KEY,
             username TEXT NOT NULL UNIQUE,
@@ -182,14 +190,6 @@ def init_db():
             total_play_points INTEGER DEFAULT 0,
             current_table_id INTEGER REFERENCES tables(id),
             current_match_id INTEGER REFERENCES matches(id)
-        );
-
-        CREATE TABLE IF NOT EXISTS matches (
-            id SERIAL PRIMARY KEY,
-            table_id INTEGER NOT NULL REFERENCES tables(id),
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            finished_at TIMESTAMP,
-            finished BOOLEAN DEFAULT FALSE
         );
 
         CREATE TABLE IF NOT EXISTS rounds (
