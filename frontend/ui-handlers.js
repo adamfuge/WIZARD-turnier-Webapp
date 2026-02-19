@@ -1,4 +1,4 @@
-import * as pb from './partieberechnungen.js'
+import * as pb from '../partieberechnungen.js'
 
 const rundenzahlen = [, , , [2, 4, 5, 6, 7, 8, 9, 10, 11, 12], [1, 3, 5, 7, 9, 11, 12, 13, 14, 15], [2, 4, 6, 8, 10, 12, 14, 16, 18, 20]]
 
@@ -13,8 +13,30 @@ function clonePartie(source) {
 }
 
 function initPartie() {
-  const playerNames = getPlayerNames()
-  partie = pb.new_partie('A', playerNames)
+  // Check if we're on partie.html and have stored partie data
+  const storedPartie = localStorage.getItem('currentPartie')
+  if (storedPartie && window.location.pathname.includes('partie.html')) {
+    const partieData = JSON.parse(storedPartie)
+    const playerNames = partieData.spieler
+    partie = pb.new_partie(partieData.tisch, playerNames)
+    
+    // Update table info badge
+    const tableInfo = document.getElementById('tableInfo')
+    if (tableInfo) {
+      tableInfo.textContent = `Tisch: ${partieData.tisch}`
+    }
+    
+    // Update player display
+    for (const i of pb.range(playerNames.length)) {
+      const el = document.getElementById(`player${i + 1}`)
+      if (el) {
+        el.childNodes[0].textContent = playerNames[i]
+      }
+    }
+  } else {
+    const playerNames = getPlayerNames()
+    partie = pb.new_partie('A', playerNames)
+  }
   undoHistory = []
 }
 
@@ -264,6 +286,87 @@ window.sendFeedback = function () {
     console.info('Feedback:', text)
   }
   feedback.value = ''
+}
+
+window.finishPartie = function () {
+  if (partie.aktuelle_runde !== 'ende') {
+    alert('Die Partie ist noch nicht zu Ende! Bitte beende alle Runden.')
+    return
+  }
+
+  // Calculate rankings and tournament points
+  const rankings = pb.rankings(partie)
+  const turnierpunkte = pb.turnierpunkte(rankings)
+  
+  // Build ranking display
+  const rankingHTML = rankings.map((rank, index) => {
+    const spielerIndex = rank[0]
+    const spieler = partie.spieler[spielerIndex]
+    const partiepunkte = partie.punktetabelle[partie.letzte_runde][spielerIndex]
+    const tpunkte = turnierpunkte[index]
+    
+    return `
+      <div class="d-flex justify-content-between align-items-center p-2 ${index < 3 ? 'bg-light' : ''}">
+        <div>
+          <span class="badge ${index === 0 ? 'bg-warning' : index === 1 ? 'bg-secondary' : index === 2 ? 'bg-danger' : 'bg-light text-dark'}">${index + 1}</span>
+          <strong>Spieler ${spieler}</strong>
+        </div>
+        <div>
+          <span class="text-muted">Partiepunkte: ${partiepunkte}</span>
+          <span class="badge bg-primary ms-2">+${tpunkte} TP</span>
+        </div>
+      </div>
+    `
+  }).join('')
+  
+  document.getElementById('finalRankingBody').innerHTML = rankingHTML
+  
+  // Show modal
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    const modalEl = document.getElementById('modalFinishPartie')
+    bootstrap.Modal.getOrCreateInstance(modalEl).show()
+  }
+}
+
+window.confirmFinishPartie = function () {
+  // Calculate final results
+  const rankings = pb.rankings(partie)
+  const turnierpunkte = pb.turnierpunkte(rankings)
+  
+  const results = rankings.map((rank, index) => {
+    const spielerIndex = rank[0]
+    return {
+      spieler: partie.spieler[spielerIndex],
+      partiepunkte: partie.punktetabelle[partie.letzte_runde][spielerIndex],
+      turnierpunkte: turnierpunkte[index]
+    }
+  })
+  
+  // Load tournament data
+  const tournamentData = JSON.parse(localStorage.getItem('tournamentData') || '{"parties": []}')
+  
+  // Add this partie
+  tournamentData.parties.push({
+    tisch: partie.tisch,
+    timestamp: new Date().toISOString(),
+    results: results
+  })
+  
+  // Save
+  localStorage.setItem('tournamentData', JSON.stringify(tournamentData))
+  
+  // Clear current partie
+  localStorage.removeItem('currentPartie')
+  
+  // Hide modal and redirect
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    const modalEl = document.getElementById('modalFinishPartie')
+    const modal = bootstrap.Modal.getInstance(modalEl)
+    if (modal) modal.hide()
+  }
+  
+  alert('Partie erfolgreich gespeichert!')
+  window.location.href = 'turnierstand.html'
 }
 
 window.load()
