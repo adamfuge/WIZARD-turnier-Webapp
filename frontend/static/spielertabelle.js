@@ -104,7 +104,7 @@ spielernameninput.oninput = function(){
         
         baueSpielerinfo(spielernameninput.value)
 
-
+        /*
         //GET the spielergebnisse von einem Spieler from the backend
         fetch('/get_player_matches', {
             method: 'POST',
@@ -120,8 +120,22 @@ spielernameninput.oninput = function(){
             spielerergebnisse = []
 
         });
+        */
 
+        // Zum testen
+        if(spielernameninput.value == 35){spielerergebnisse = [
+        {tisch:'A', spieler:35, TP: 45, PP:550, anzahl_richtige_ansagen: 10, zeitpunkt: 783333333 },
+        {tisch:'I', spieler:35, TP: 5, PP:-100, anzahl_richtige_ansagen: 5, zeitpunkt: new Date()},
+        {tisch:'M', spieler:35, TP: 0, PP:-1230, anzahl_richtige_ansagen: 0, zeitpunkt: 784844444},
+        ]}
+        else spielerergebnisse = []
+
+        baueSpielertabelle()
     }
+
+    
+
+
 
 }   
 
@@ -169,5 +183,5 @@ function reset_inputs(){
 
 
 
-baueSpielertabelle()
+resetSpielerErgebnisse()
 
