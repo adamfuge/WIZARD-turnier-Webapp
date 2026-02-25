@@ -1,0 +1,400 @@
+
+.bold{
+    font-weight: bold;
+}
+
+.matchColor {
+    color: green;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: auto;
+}
+ 
+.align-content-center {
+    display: flex;
+    align-content: center;
+}
+
+.align-items-center {
+    display: flex;
+    align-items: center;
+}
+
+.align-self-center {
+    display: flex;
+    align-self: center;
+
+}
+
+.postition-relative{
+    position: relative;
+}
+
+.PunkteZeile{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    width: auto;
+}
+
+.schaetzung-stiche{
+    display: flex;
+    flex-direction: column;
+    height: 40px;
+    font-size: small;
+}
+
+.pagerow{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-content: center;
+    width: 100vw;
+    height: auto;
+    margin-bottom: 5px;
+    margin-top: 5px;
+    gap: 10px;
+}
+
+#blockContainer{
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    height: auto;
+    width: 90vw;
+    margin-inline: auto;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: lightgoldenrodyellow;
+    margin-bottom: auto;
+}
+
+.turnierstandzeile{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    align-content: center;
+    align-items: center;
+    width: auto;
+    height: 2rem;
+    margin: 0.2rem;
+    border: grey solid 1px;
+    border-radius: 0.2rem;
+    background-color: white;
+
+}
+
+.turnierstandzeile.status-hat_bereits_qualifikation{
+    background-color: lightgrey;
+}
+
+.turnierstandzeile.status-qualifiziert{
+    background-color: lightgreen;
+}
+
+.turnierstandzeile.status-disqualifiziert{
+    background-color: darkred;
+    color: white;
+}
+
+.fancy-bg{
+    background: radial-gradient(rgb(227, 228, 176),rgb(255, 231, 98));
+    border: none;
+}
+
+.turnierstandelement{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    width: 10vw;
+    height: 2rem;
+    vertical-align: bottom;
+    font-size: large;
+    padding-right: 4.5vw;
+}
+
+.turnierstandinfo{
+    vertical-align: bottom;
+    height: 1.2rem;
+    text-align: center;
+}
+
+.turnierstanddetail{
+    text-align: center;
+    width: calc(min(fit-content,5rem));
+    font-size: xx-small;
+}
+
+.laenger{
+    width: 4.2rem;
+}
+
+#InputContainer,#EndstandContainer,#PartieerstellenContainer{
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    align-items: center;
+    height: auto;
+    width: max-content;
+    margin-inline: auto;
+    border-radius: 5px;
+    padding: 10px;
+    
+    border: black 1px solid;
+    margin-bottom: 10px;
+    align-self: center;
+    justify-self: center;
+}
+
+.rundenzahl{
+    display: flex;
+    align-self: left;
+    justify-self: left;
+    justify-content: center;
+    width: 30px;
+}
+
+.punktzahl{
+    padding: 3px;
+    width: 40px;
+
+}
+
+.punkteelement{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 5px;
+    border-right: 1px solid gray;
+    border-left: 1px solid gray;
+    width:70px;
+
+}
+
+.hide{
+    display: none;
+}
+
+.rundeninput{
+    border: grey solid 1px;
+    border-radius: 5px;
+    background-color: white;
+    margin: 2px;
+    margin-inline: 5px;
+    width: 50px;
+    font-size: 0.8rem;
+}
+
+#gesamtpunktzahlen{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-content: center;
+}
+
+.gesamtpunktzahl{
+    width: 60px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-inline: 10px;
+    height: 30px;
+    width: 3em;
+    background-color: lightgray;
+    border-radius: 5px;
+}
+
+.fuehrender{
+    background-color: lightgreen;
+}
+
+#InputSubmit{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-content: center;
+}
+
+#submitRundeButton{
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border: none;
+}
+
+#rundeninfo{
+    rotate: 270deg;
+}
+
+#Spielernamen{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-content: baseline;
+}
+
+.playerName{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 10px;
+    width: 3em;
+
+}
+
+.inputtitel{
+    text-align: center;
+    margin-top: 5px;
+    font-size: small;
+}
+
+#footer{
+    margin-top: auto;
+    height: 50px;
+    width: 100vw;
+    background-color: lightgrey;
+    display:flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#imagePlaceholder{
+    height: 20px;
+    width: 20px;
+    background-color: white;
+}
+
+#SpielAbschließen{
+    align-self: center;
+    justify-self: center;
+}
+
+html{
+    font-family: 'Gill Sans', 'Gill Sans MT', 'Calibri', 'Trebuchet MS', sans-serif;
+}
+
+button{
+    border-radius: 5px;
+    border: none;
+    background-color: blue;
+    color: white;
+    padding: 0.5rem;
+    font-weight: 600;
+}
+
+button:not(.disabled):hover{
+ background-color: rgb(0, 0, 221);
+ border: white;
+}
+
+button.disabled{
+    background-color: rgb(151, 151, 199);
+
+}
+
+
+.endstandspalte{
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+
+}
+.endstandspaltenelement{
+    text-align: center;
+    margin-bottom: 2px;
+    margin-bottom: 2px;
+
+    min-width: 2rem;
+}
+
+#platz1{
+    background: gold;
+    color: black;
+    border-radius: 5px;
+
+}
+#platz2{
+    background: silver;
+    color: black;
+    border-radius: 5px;
+
+}
+#platz3{
+    background: #CD7F32;
+    color: black;
+    border-radius: 5px;
+
+}
+
+.endstandspaltenheader{
+    margin-bottom: 10px;
+}
+
+#SpielAbschliessen{
+    background-color: gold;
+    color: black;
+    border:black solid 1px;
+}
+
+#SpielAbschliessen:hover{
+    background-color: rgb(255, 170, 0);
+}
+
+#SpielernamenInputs{
+    display: flex;
+    flex-direction: column;
+    height: 10rem;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+h5{
+    margin-top: 3px;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+.partieerstellenelement{
+    width: fit-content;
+    margin: 5px;
+
+}
+
+#title{
+    background-color: lightgrey;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: black;
+    font-weight: 600;
+    gap: 10px;
+    height: fit-content;
+    padding: 15px;
+    flex-wrap: wrap;
+
+}
+
+body{
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    width: 100vw;
+    margin: 0;
+}
+
+
