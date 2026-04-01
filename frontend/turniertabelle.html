@@ -22,6 +22,7 @@
       WIZARD Turniertabelle
     </div>
     <div style="display: flex; gap: 3px">
+    <a href="match_view" style="color: #FFFFFF; text-decoration: none;" ></a>
     <button type="button" class="neuepartiebutton row" onclick="load('s1')">
       <div class="row">
         <div style="height: 1.4rem; margin:3px">
@@ -33,10 +34,18 @@
         </div>
       </div>
     </button> 
+    </a>
     </div>
   </div>
   <div id="navContainer" class="container">
+  <!--
 	<div class="pagerow">
+    <input type="text" class="form-control" placeholder="Spieler ID" id="spielerIDSuche" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+    <button type="button" class="neuepartiebutton row" onclick="aufSpielertabelleWeiterleiten()"> Suchen </button>
+  </div>
+  -->
+  
+  <div class="pagerow">
         <div>
             Dies ist der aktuelle Turnierstand:
         </div> 	
