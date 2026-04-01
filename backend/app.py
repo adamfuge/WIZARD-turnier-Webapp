@@ -30,6 +30,10 @@ def serve_index():
 def serve_match_view():
     return send_from_directory('../frontend', 'partietabelle.html')
 
+@app.route("/tournament_view")
+def serve_tournament_view():
+    return send_from_directory('../frontend', 'turniertabelle.html')
+
 def execute_query(query, params=None):
     conn = get_db_connection()
     cur = conn.cursor()
