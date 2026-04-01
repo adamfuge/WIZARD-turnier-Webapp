@@ -15,6 +15,19 @@ turnierstand = [
 ]
 
 function baueTurniertabelle(){
+
+    //GET the Turnierdaten
+    fetch('/tournament_data')
+    .then(response => response.text())
+    .then(data => {
+        console.log('Success:', data);
+        turnierstand = data
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+        
+
     let punktetabelle = document.getElementById("blockContainer")
     let tabellencode = ``
 
@@ -73,15 +86,7 @@ function baueReihe(item){
 
 
 
-function neubauePunktetabelle(partie){
-    let punktetabelle = document.getElementById("ResultsContainer");
-    let neue_punktetabelle = document.createElement("div");
-    neue_punktetabelle.id = "ResultsContainer";
-    neue_punktetabelle.className = "container text-center card bg-light ps-1 pe-2 pt-2 pb-2";
-    punktetabelle.replaceWith(neue_punktetabelle);
-    bauePunktetabelle(partie)
 
-}
 
 
 function validateNumber(self){
@@ -110,23 +115,32 @@ function checkAndCorrectValidInput(self){
     else return true
 }
 
-function reset_inputs(){
-    let runden_inputs = document.getElementsByClassName('rundeninput')
-    for(const input of runden_inputs){
-        input.value = ''
-    }
+
+function aufSpielertabelleWeiterleiten(){
+    let submitButton = document.getElementById('spielerIDSuche')
+    //POST the spielergebnisse to the backend
+    
+
+    fetch('/player_view', {
+        method: 'GET',
+        header: toString(submitButton.value)
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Success:', data);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+        
+
 }
 
-function disableSubmitButton(){
-    let submitButton = document.getElementById('submitRundeButton')
-    submitButton.classList.remove('disabled')
-    submitButton.className += ' disabled'
-}
 
-function enableSubmitButton(){
-    let submitButton = document.getElementById('submitRundeButton')
-    submitButton.classList.remove('disabled')
-}
+
+
+
+
 
 
 
@@ -134,3 +148,5 @@ function enableSubmitButton(){
 
 
 baueTurniertabelle()
+
+
