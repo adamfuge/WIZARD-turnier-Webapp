@@ -7,7 +7,7 @@
   <title>WIZARD</title>
   <link rel='stylesheet' href='/static/partietabelle.css'>
   </script>
-    <script defer src="https://code.jquery.com/jquery-4.0.0.js"></script>
+    <script src="https://code.jquery.com/jquery-4.0.0.js"></script>
 </head>
 
   
@@ -22,7 +22,8 @@
       WIZARD Punktetabelle
     </div>
     <div style="display: flex; gap: 3px">
-    <button type="button" id="Turnieruebersicht" class="row disabled" onclick="console.log('Hier könnte Ihre weiterleitung stehen, leider existiert sie aber noch nicht.')">
+    <a href="tournament_view" style="color: #FFFFFF; text-decoration: none;" >
+    <button type="button" id="Turnieruebersicht" class="row" onclick="console.log('Hier könnte Ihre weiterleitung stehen, leider existiert sie aber noch nicht.')">
       <div class="row">
         <div style="height: 1.4rem; margin:3px">
           <i data-lucide="table-2">
@@ -33,6 +34,7 @@
         </div>
       </div>
     </button> 
+    </a>
     <button type="button" class="neuepartiebutton row" onclick="load('s1')">
       <div class="row">
         <div style="height: 1.4rem; margin:3px">
@@ -70,8 +72,8 @@
 
     
 
-  <script defer src="https://unpkg.com/lucide@latest"></script>
-  <script defer>lucide.createIcons();</script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>lucide.createIcons();</script>
   <script src="/static/partietabelle.js"></script>
 </body>
 

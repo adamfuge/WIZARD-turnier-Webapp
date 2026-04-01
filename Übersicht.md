@@ -3,7 +3,7 @@
 
 
 ## Frontend
-4 Seiten werden für volle funktionalität benötigt. Diese sollen in htnl geschrieben sein. CSS und Flexbox erweisen sich fürs Design möglicherweise als nützlich.
+4 Seiten werden für volle funktionalität benötigt. Diese sollen in html geschrieben sein. CSS und Flexbox erweisen sich fürs Design möglicherweise als nützlich.
 
 ### index.html
 Die Eingangsseite. Bietet weiterleitungen auf Partie_erstellen.html oder turnierstand.html
