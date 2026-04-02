@@ -34,6 +34,27 @@ def serve_match_view():
 def serve_tournament_view():
     return send_from_directory('../frontend', 'turniertabelle.html')
 
+@app.route("/tournament_data")
+def get_tournament_data():
+    try:
+        # execute_query(''' GET ALLES ''') 
+        # SOPHIE hier darfst du dich austoben
+        return [
+    {'rank': 1, 'spieler':96, 'TP': 75, 'PP':550, 'status': 'qualifiziert'},
+    {'rank': 2, 'spieler':71, 'TP': 70, 'PP':-100, 'status': 'hat_bereits_qualifikation'},
+    {'rank': 3, 'spieler':2,  'TP': 60, 'PP':550, 'status': 'qualifiziert'},
+    {'rank': 3, 'spieler':3, 'TP': 60, 'PP':550, 'status': 'qualifiziert'},
+    {'rank': 5, 'spieler':1, 'TP': 20, 'PP':0, 'status': 'none'},
+    {'rank': 6, 'spieler':99, 'TP': 20, 'PP':-8880, 'status': 'none'},
+    {'rank': 7, 'spieler':9, 'TP': 0, 'PP':-210, 'status': 'none'},
+    {'rank': 8, 'spieler':11, 'TP': 0, 'PP':-210, 'status': 'none'},
+    {'rank': None, 'spieler':98, 'TP': 80, 'PP':-2010, 'status': 'disqualifiziert'}
+]
+    
+    except Exception as e:
+        return f"Error: {str(e)}\n", 400
+
+
 def execute_query(query, params=None):
     conn = get_db_connection()
     cur = conn.cursor()

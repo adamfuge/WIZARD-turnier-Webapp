@@ -1,18 +1,6 @@
 
 
 
-turnierstand = [
-    {rank: 1, spieler:35, TP: 75, PP:550, status: 'qualifiziert'},
-    {rank: 2, spieler:71, TP: 70, PP:-100, status: 'hat_bereits_qualifikation'},
-    {rank: 3, spieler:2,  TP: 60, PP:550, status: 'qualifiziert'},
-    {rank: 3, spieler:3, TP: 60, PP:550, status: 'qualifiziert'},
-    {rank: 5, spieler:1, TP: 20, PP:0, status: 'none'},
-    {rank: 6, spieler:99, TP: 20, PP:-8880, status: 'none'},
-    {rank: 7, spieler:9, TP: 0, PP:-210, status: 'none'},
-    {rank: 8, spieler:11, TP: 0, PP:-210, status: 'none'},
-    {rank: NaN, spieler:98, TP: 80, PP:-2010, status: 'disqualifiziert'}
-
-]
 
 function baueTurniertabelle(){
 
@@ -21,20 +9,37 @@ function baueTurniertabelle(){
     .then(response => response.text())
     .then(data => {
         console.log('Success:', data);
-        turnierstand = data
+        console.log(JSON.parse(data));
+
+        let punktetabelle = document.getElementById("blockContainer")
+        let tabellencode = ``
+
+        for(const item of JSON.parse(data)){
+            tabellencode += baueReihe(item)
+        }
+        punktetabelle.innerHTML += tabellencode
+
     })
     .catch((error) => {
         console.error('Error:', error);
+
+        turnierstand = [
+        {rank: 1, spieler:35, TP: 75, PP:550, status: 'qualifiziert'},
+        {rank: 2, spieler:71, TP: 70, PP:-100, status: 'hat_bereits_qualifikation'},
+        {rank: 7, spieler:9, TP: 0, PP:-210, status: 'none'},
+        {rank: NaN, spieler:98, TP: 80, PP:-2010, status: 'disqualifiziert'}
+        ]
+
+        let punktetabelle = document.getElementById("blockContainer")
+        let tabellencode = ``
+
+        for(const item of data){
+            tabellencode += baueReihe(item)
+        }
+        punktetabelle.innerHTML += tabellencode
     });
         
 
-    let punktetabelle = document.getElementById("blockContainer")
-    let tabellencode = ``
-
-    for(const item of turnierstand){
-        tabellencode += baueReihe(item)
-    }
-    punktetabelle.innerHTML += tabellencode
 }
 
 
