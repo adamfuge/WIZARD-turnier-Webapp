@@ -261,19 +261,19 @@ button.disabled{
     min-width: 2rem;
 }
 
-#platz1{
+.platz1{
     background: gold;
     color: black;
     border-radius: 5px;
 
 }
-#platz2{
+.platz2{
     background: silver;
     color: black;
     border-radius: 5px;
 
 }
-#platz3{
+.platz3{
     background: #CD7F32;
     color: black;
     border-radius: 5px;
@@ -327,6 +327,38 @@ h5{
     height: fit-content;
     padding: 15px;
     flex-wrap: wrap;
-
 }
 
+/* The overlay (background) */
+.modal-overlay {
+  display: block;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+
+/* The modal box */
+.modal-box {
+  background: white;
+  width: 90%;
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+}
+
+/* Close button */
+.modal-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  font-size: 24px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
