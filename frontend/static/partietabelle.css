@@ -179,7 +179,7 @@
     rotate: 270deg;
 }
 
-#Spielernamen{
+.Spielernamen{
     display: flex;
     flex-direction: row;
     justify-content: space-around;
@@ -343,6 +343,9 @@ h5{
 
 /* The modal box */
 .modal-box {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
   background: white;
   width: 90%;
   max-width: 400px;
@@ -361,4 +364,12 @@ h5{
   border: none;
   background: none;
   cursor: pointer;
+}
+
+.modalschaetzunginputFelder,.modalsticheinputFelder{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-content: baseline;
+
 }
