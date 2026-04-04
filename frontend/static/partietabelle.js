@@ -75,8 +75,7 @@ function naechster_geber(partie){
     }
     
     //Finde den Spielerindex des letzten Geber
-    let index_letzter_geber = partie.spieler.findIndex(spieler => spieler == partie.geber[partie.letzte_runde]) 
-    
+    let index_letzter_geber = partie.spieler.findIndex(spieler => spieler.trim() == partie.geber[partie.letzte_runde].trim()) 
     
     let index_naechster_geber = (index_letzter_geber + 1) % partie.spieler.length
 
@@ -517,8 +516,6 @@ function tiebreaker5(partie,indices=range(partie.spieler.length),umkaempfte_plat
     console.log('Tiebreaker5')
 
     
-    console.log(partie.regeln)
-    console.log(partie.aktuelle_runde)
 
     if(partie.regeln != 'Turnier' ||
         partie.aktuelle_runde != undefined){
@@ -526,8 +523,6 @@ function tiebreaker5(partie,indices=range(partie.spieler.length),umkaempfte_plat
     }
 
    
-
-    // FEDERICO hier muss sich ein POP up öffnen, wie
     boxContainer = document.getElementById('modalContainer')
 
     boxContainer.innerHTML += `
@@ -1587,18 +1582,16 @@ function baueNavContainer(){
                             ${partie.aktuelle_runde}
                           </span>
                       </span>
-                    <div>
-                      <span id="roundInfo2">
+                      <div id="roundInfo2">
                         Spieler
                         <span class="aktuellerGeber">
                             ${partie.geber[partie.aktuelle_runde]}
                         </span> 
                         gibt jedem
-                        <span class="aktuelleRundenzahl">
+                        <span class="aktuelleRundenzahl aktuellerGeber">
                             ${partie.aktuelle_runde}
                         </span> 
                         Karten
-                      </span>
                     </div> 
                   </div> `
 }
@@ -1794,8 +1787,29 @@ function testEndstandTiebreaker5(){
     baueNavContainer()
 }
 
+
+
+function TestLadeBegonnenePartie(){
+    let schaetzungen = [0,2,5,2,4]
+    let stiche = [1,2,4,1,4]
+    
+    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+                baueInputUndResultsContainer()
+
+                bauePunktetabelle(partie)
+
+
+                baue_inputcontainer()
+
+                baue_neu_rundeninfo(partie)
+
+                baueNavContainer()
+}
+
+
+
 // TestLadeEndstand()
-testEndstandTiebreaker5()
+TestLadeBegonnenePartie()
 
 
 

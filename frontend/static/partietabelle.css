@@ -373,3 +373,25 @@ h5{
     align-content: baseline;
 
 }
+
+.aktuellerGeber{
+    width: 60px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-inline: 0.5rem;
+    height: 30px;
+    width: 3em;
+    background-color: lightgray;
+    border-radius: 5px;
+    
+}
+
+#roundInfo2{
+    height: 2rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
