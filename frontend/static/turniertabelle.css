@@ -58,15 +58,15 @@
 
 
 .isscrolling{
-     animation: scrollDown 1000s linear infinite;
+     animation: scrollDown 600s linear infinite;
      position: relative;
 }
 
 @keyframes scrollDown {
   0% { top: 90vh; }
-  1% { top: 0%; }
-  30% { top: 0%; }
-  99% { top: -220rem;  } /* Assuming content is duplicated */
+  0.1% { top: 0%; }
+  60% { top: 0%; }
+  99.9% { top: -220rem;  } /* Assuming content is duplicated */
   100% { top: calc(-220rem - 90vh);  }
 }
 
@@ -110,7 +110,7 @@
     justify-content: center;
     align-content: end;
     align-items: end;
-    
+
     gap: 0.5rem;
     width: 20vw;
     vertical-align: bottom;
