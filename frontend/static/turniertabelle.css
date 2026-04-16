@@ -64,10 +64,10 @@
 
 @keyframes scrollDown {
   0% { top: 90vh; }
-  0.1% { top: 0%; }
+  0.2% { top: 0%; }
   60% { top: 0%; }
-  99.9% { top: -220rem;  } /* Assuming content is duplicated */
-  100% { top: calc(-220rem - 90vh);  }
+  99.8% { top: -230rem;  } /* Assuming content is duplicated */
+  100% { top: calc(-230rem - 90vh);  }
 }
 
 .turnierstandzeile{
