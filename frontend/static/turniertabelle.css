@@ -65,15 +65,44 @@
     display: flex;
     flex-direction: column;
     align-content: center;
-    height: auto;
+    overflow: scroll;
+    height: 82vh;
     width: 90vw;
     margin-inline: auto;
     margin-bottom: 10px;
     border-radius: 10px;
-    padding: 10px;
-    background-color: lightgoldenrodyellow;
-    margin-bottom: auto;
+    padding: 1px;
+    background-color: black;
+    position: relative;
 }
+
+.scrolling{
+    
+    height: 82vh;
+}
+
+.scrolling-content {
+  position: absolute;
+  height: fit-content;
+  width: 100%;
+  animation: my-scroll 1200s linear infinite;
+}
+
+@keyframes my-scroll {
+  0%   { top: 100%; }  
+  0.1%   { top: 0%; }   
+  30%  { top: 0%; }   
+  99% { top: -850%; } 
+  99.9% { top: -850%; } 
+  100% { top: -1000%; } 
+   
+}
+
+/* Pause on hover to let users read */
+.scroll-content:hover{
+  animation-play-state: paused;
+}
+
 
 .turnierstandzeile{
     display: flex;
@@ -82,7 +111,7 @@
     align-content: center;
     align-items: center;
     width: auto;
-    height: 2rem;
+    height: 1.4rem;
     margin: 0.2rem;
     border: grey solid 1px;
     border-radius: 0.2rem;
@@ -110,12 +139,13 @@
 
 .turnierstandelement{
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: center;
     align-content: center;
-    align-items: center;
+    align-items: end;
+    gap: 0.5rem;
     width: 20vw;
-    height: 2rem;
+    height: 1rem;
     vertical-align: bottom;
     font-size: large;
 }
@@ -170,7 +200,6 @@
     border-right: 1px solid gray;
     border-left: 1px solid gray;
     width:70px;
-
 }
 
 .hide{
@@ -250,6 +279,7 @@
     text-align: center;
     margin-top: 5px;
     font-size: small;
+
 }
 
 #footer{
@@ -367,22 +397,22 @@ h5{
 }
 
 #title{
-    background-color: lightgrey;
+    background-color: black;
     display: flex;
     justify-content: center;
     align-content: center;
     align-items: center;
-    font-size: 1.5rem;
-    color: black;
-    font-weight: 600;
-    gap: 10px;
-    height: fit-content;
-    padding: 15px;
+    font-size: 10vh;
+    color: white;
+    font-weight: 1000;
+    height: 10vh;
+    padding: 1vh;
     flex-wrap: wrap;
 
 }
 
 body{
+    background-color: black;
     display: flex;
     flex-direction: column;
     min-height: 100dvh;
@@ -390,4 +420,6 @@ body{
     margin: 0;
 }
 
-
+.centered{
+    justify-content: center;
+}

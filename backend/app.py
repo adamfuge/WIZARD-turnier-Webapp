@@ -242,6 +242,14 @@ def init_db():
             tournament_points INTEGER DEFAULT 0,
             UNIQUE(match_id, player_id)
         );
+                
+        CREATE TABLE IF NOT EXISTS tiebreaker_results (
+            id SERIAL PRIMARY KEY,
+            match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+            player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+            final_standing INTEGER NOT NULL,
+            UNIQUE(match_id, player_id)
+        );
     ''')
     conn.commit()
     cur.close()
@@ -426,3 +434,5 @@ def drop_db():
     cur.close()
     conn.close()
     return "Database dropped!\n"
+
+

@@ -4,6 +4,8 @@ services:
     ports:
       - "5000:5000"
   db:
+    ports: 
+      - "5001:5001"
     image: postgres
     restart: always
     # set shared memory limit when using docker compose
@@ -14,6 +16,17 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - wizard-data:/var/lib/postgresql
+  pgadmin:
+    image: dpage/pgadmin4:9.14.0
+    container_name: pgadmin_wizard
+    restart: always
+    ports:
+      - 127.0.0.1:8080:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: user@example.com
+      PGADMIN_DEFAULT_PASSWORD: password123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
 
 volumes:
   wizard-data:
