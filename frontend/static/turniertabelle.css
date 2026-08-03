@@ -13,7 +13,7 @@
     align-items: center;
     padding: auto;
 }
-
+ 
 .align-content-center {
     display: flex;
     align-content: center;
@@ -61,22 +61,103 @@
     gap: 10px;
 }
 
-#ResultsContainer{
+#blockContainer{
     display: flex;
     flex-direction: column;
     align-content: center;
-    height: auto;
-    width: max-content;
+    overflow: scroll;
+    height: 82vh;
+    width: 90vw;
     margin-inline: auto;
     margin-bottom: 10px;
     border-radius: 10px;
-    padding: 10px;
-    background-color: lightgoldenrodyellow;
+    padding: 1px;
+    background-color: black;
+    position: relative;
+}
+
+.scrolling{
+    
+    height: 82vh;
+}
+
+.scrolling-content {
+  position: absolute;
+  height: fit-content;
+  width: 100%;
+  animation: my-scroll 1200s linear infinite;
+}
+
+@keyframes my-scroll {
+  0%   { top: 100%; }  
+  0.1%   { top: 0%; }   
+  30%  { top: 0%; }   
+  99% { top: -850%; } 
+  99.9% { top: -850%; } 
+  100% { top: -1000%; } 
+   
+}
+
+/* Pause on hover to let users read */
+.scroll-content:hover{
+  animation-play-state: paused;
+}
+
+
+.turnierstandzeile{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-content: center;
+    align-items: center;
+    width: auto;
+    height: 1.4rem;
+    margin: 0.2rem;
+    border: grey solid 1px;
+    border-radius: 0.2rem;
+    background-color: white;
+
+}
+
+.turnierstandzeile.status-hat_bereits_qualifikation{
+    background-color: lightgrey;
+}
+
+.turnierstandzeile.status-qualifiziert{
+    background-color: lightgreen;
+}
+
+.turnierstandzeile.status-disqualifiziert{
+    background-color: darkred;
+    color: white;
 }
 
 .fancy-bg{
     background: radial-gradient(rgb(227, 228, 176),rgb(255, 231, 98));
     border: none;
+}
+
+.turnierstandelement{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-content: center;
+    align-items: end;
+    gap: 0.5rem;
+    width: 20vw;
+    height: 1rem;
+    vertical-align: bottom;
+    font-size: large;
+}
+
+.turnierstandinfo{
+    vertical-align: bottom;
+    height: 1.2rem;
+
+}
+
+.turnierstanddetail{
+    font-size: xx-small;
 }
 
 #InputContainer,#EndstandContainer,#PartieerstellenContainer{
@@ -119,7 +200,6 @@
     border-right: 1px solid gray;
     border-left: 1px solid gray;
     width:70px;
-
 }
 
 .hide{
@@ -179,7 +259,7 @@
     rotate: 270deg;
 }
 
-.Spielernamen{
+#Spielernamen{
     display: flex;
     flex-direction: row;
     justify-content: space-around;
@@ -199,9 +279,11 @@
     text-align: center;
     margin-top: 5px;
     font-size: small;
+
 }
 
 #footer{
+    margin-top: auto;
     height: 50px;
     width: 100vw;
     background-color: lightgrey;
@@ -261,19 +343,19 @@ button.disabled{
     min-width: 2rem;
 }
 
-.platz1{
+#platz1{
     background: gold;
     color: black;
     border-radius: 5px;
 
 }
-.platz2{
+#platz2{
     background: silver;
     color: black;
     border-radius: 5px;
 
 }
-.platz3{
+#platz3{
     background: #CD7F32;
     color: black;
     border-radius: 5px;
@@ -315,83 +397,29 @@ h5{
 }
 
 #title{
-    background-color: lightgrey;
+    background-color: black;
     display: flex;
     justify-content: center;
     align-content: center;
     align-items: center;
-    font-size: 1.5rem;
-    color: black;
-    font-weight: 600;
-    gap: 10px;
-    height: fit-content;
-    padding: 15px;
+    font-size: 10vh;
+    color: white;
+    font-weight: 1000;
+    height: 10vh;
+    padding: 1vh;
     flex-wrap: wrap;
+
 }
 
-/* The overlay (background) */
-.modal-overlay {
-  display: block;
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-}
-
-
-/* The modal box */
-.modal-box {
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  background: white;
-  width: 90%;
-  max-width: 400px;
-  margin: 100px auto;
-  padding: 20px;
-  border-radius: 10px;
-  position: relative;
-}
-
-/* Close button */
-.modal-close {
-  position: absolute;
-  right: 12px;
-  top: 8px;
-  font-size: 24px;
-  border: none;
-  background: none;
-  cursor: pointer;
-}
-
-.modalschaetzunginputFelder,.modalsticheinputFelder{
+body{
+    background-color: black;
     display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-content: baseline;
-
+    flex-direction: column;
+    min-height: 100dvh;
+    width: 100vw;
+    margin: 0;
 }
 
-.aktuellerGeber{
-    width: 60px;
-    display: flex;
-    flex-direction: row;
+.centered{
     justify-content: center;
-    align-items: center;
-    margin-inline: 0.5rem;
-    height: 30px;
-    width: 3em;
-    background-color: lightgray;
-    border-radius: 5px;
-    
-}
-
-#roundInfo2{
-    height: 2rem;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
 }

@@ -1,0 +1,118 @@
+:root {
+  --wizard-bg: #f4f6fb;
+  --wizard-surface: #ffffff;
+  --wizard-primary: #4b2e83;
+  --wizard-primary-soft: #ece8f8;
+  --wizard-accent: #f2a900;
+  --wizard-success: #2f9e44;
+  --wizard-danger: #c92a2a;
+  --wizard-text: #1f2937;
+  --wizard-muted: #6b7280;
+  --wizard-border: #dbe1ee;
+}
+
+body {
+  background: var(--wizard-bg);
+  color: var(--wizard-text);
+}
+
+#title {
+  background: linear-gradient(90deg, var(--wizard-primary), #2e1a52);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 0 0 12px 12px;
+  margin-bottom: 0.75rem;
+}
+
+.bg-wizardscore {
+  background-color: var(--wizard-primary);
+  color: #fff;
+}
+
+.marginBottom {
+  margin-bottom: 0.75rem;
+}
+
+#InputContainer {
+  border: 1px solid var(--wizard-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(45, 65, 100, 0.08);
+}
+
+#ResultsContainer {
+  border: 1px solid var(--wizard-border);
+  border-radius: 14px;
+  background: var(--wizard-surface) !important;
+}
+
+#ResultsContainer > .row {
+  margin-bottom: 0.3rem;
+}
+
+#ResultsContainer .card {
+  border: 1px solid var(--wizard-border);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.playerName {
+  font-weight: 600;
+}
+
+.inputBold {
+  font-weight: 700;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+.matchColor {
+  color: var(--wizard-success);
+}
+
+.space {
+  min-height: 4px;
+}
+
+.badge.text-bg-light {
+  background-color: var(--wizard-primary-soft) !important;
+  color: var(--wizard-primary) !important;
+  border: 1px solid #ddd6f2;
+}
+
+.btn-primary {
+  --bs-btn-bg: var(--wizard-primary);
+  --bs-btn-border-color: var(--wizard-primary);
+  --bs-btn-hover-bg: #3f276d;
+  --bs-btn-hover-border-color: #3f276d;
+  --bs-btn-active-bg: #36215f;
+  --bs-btn-active-border-color: #36215f;
+}
+
+.btn-danger {
+  --bs-btn-bg: var(--wizard-danger);
+  --bs-btn-border-color: var(--wizard-danger);
+}
+
+.btn-light {
+  border: 1px solid var(--wizard-border);
+}
+
+#roundInfo,
+#roundInfoTransform {
+  color: var(--wizard-primary);
+}
+
+#roundInfo2 {
+  color: var(--wizard-muted);
+}
+
+.modal-content {
+  border-radius: 12px;
+}
+
+.invalid-feedback {
+  text-align: left;
+}

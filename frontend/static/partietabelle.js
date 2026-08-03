@@ -14,9 +14,8 @@ function new_partie(regeln,tisch,spieler,erster_geber){
     schaetzungen: [new Array(spieler.length).fill(0)],
     stiche: [new Array(spieler.length).fill(0)],
     geber: [,erster_geber],
-    regeln: regeln
-    
-
+    regeln: regeln,
+    platzierungen: new Array(spieler.length).fill(1)
 }
     if(partie.regeln == 'Turnier' & (partie.spieler.length==3 || partie.spieler.length==5)) {
         partie.aktuelle_runde = 2 
@@ -76,8 +75,7 @@ function naechster_geber(partie){
     }
     
     //Finde den Spielerindex des letzten Geber
-    let index_letzter_geber = partie.spieler.findIndex(spieler => spieler == partie.geber[partie.letzte_runde]) 
-    
+    let index_letzter_geber = partie.spieler.findIndex(spieler => spieler.trim() == partie.geber[partie.letzte_runde].trim()) 
     
     let index_naechster_geber = (index_letzter_geber + 1) % partie.spieler.length
 
@@ -189,6 +187,19 @@ function rankings(array) {
       .map(a => a[2]);
 }
 
+function rankings_simple_by_lowest(array) {
+    help_array = []
+    for(i in array)
+        help_array[i] = - array[i]
+
+    return help_array
+      .map((v, i) => [v, i])
+      .sort((a, b) => b[0] - a[0])
+      .map((a, i) => [...a, i + 1])
+      .sort((a, b) => a[1] - b[1])
+      .map(a => a[2]);
+}
+
 /** Hilfsfunktion: Übersetze Platzierung in Turnierpunkte
 *@param  {Number} rank  Die Platzierung eines Spielers
 *@return {Number}       Die resultierenden Turnierpunkte
@@ -221,7 +232,7 @@ const findDuplicates = (arr) => {
   // original array won't be modified)
   let results = [];
   for (let i = 0; i < sorted_arr.length - 1; i++) {
-    if (sorted_arr[i + 1] == sorted_arr[i]) {
+    if (sorted_arr[i + 1] == sorted_arr[i] && sorted_arr[i] != undefined) {
       results.push(sorted_arr[i]);
     }
   }
@@ -235,6 +246,8 @@ const findDuplicates = (arr) => {
 *@return {Array<Number>}       Die Platzierungen der Spieler zB  [2, 3, 4, 1]
 **/
 function ermittle_platzierungen(partie){
+    console.log("ermittle Platzierungen")
+
     // Entferne nicht gespielte Runden aus der Punkte tabelle
     let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
     
@@ -243,13 +256,17 @@ function ermittle_platzierungen(partie){
     
     // Prüfe auf Gleichplatzierungen und führe Tiebreaker1 für alle umkäpfte Plätze aus
     let umkaempfte_platzierungen = findDuplicates(absolute_ranks)
-    if(umkaempfte_platzierungen.length){
+
+    console.log(umkaempfte_platzierungen)
+
+    if(umkaempfte_platzierungen.size){
         for(const platz of umkaempfte_platzierungen){
             // Indices der Spieler in der Punktetabelle für die der Tiebreaker ausgeführt werden muss
             indices = range(partie.spieler.length).filter(index => absolute_ranks[index] == platz)
-            
+        
+
             // Tiebreaker 1 ist: meiste richtige Schätzungen
-            neue_absolute_ranks = tiebreaker1(partie,indices,platz)
+            let neue_absolute_ranks = tiebreaker1(partie,indices,platz)
             
             // Übernehme neue Platzierungen
             for(const i of indices){
@@ -270,6 +287,8 @@ function ermittle_platzierungen(partie){
 **/
 function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
     
+    console.log('Tiebreaker1')
+
     // Entferne nicht gespielte Runden aus der Punkte tabelle
     let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
     
@@ -284,19 +303,196 @@ function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_plat
     // Ranke nach Anzahl schätzungen
     let relative_ranks = rankings(anzahl_richtiger_schaetzungen)
     let absolute_ranks = []
-    for(const i of range(indices.length)){
-        absolute_ranks[indices[i]] =  relative_ranks[i] - 1 + umkaempfte_platzierung
+    for(const i of indices){
+        absolute_ranks[i] =  relative_ranks[i] - 1 + umkaempfte_platzierung
     }
     
+    console.log(anzahl_richtiger_schaetzungen)
+    console.log(relative_ranks)
+    console.log(absolute_ranks)
+
     // Prüfe auf Gleichplatzierungen und führe Tiebraker aus
     let umkaempfte_platzierungen = findDuplicates(absolute_ranks)
-    if(umkaempfte_platzierungen.length){
+
+    console.log(umkaempfte_platzierungen)
+
+    if(umkaempfte_platzierungen.size){
         for(const platz of umkaempfte_platzierungen){
             // Indices der Spieler im Tabellenblatt für die der Tiebreaker ausgeführt werden muss
             indices = range(partie.spieler.length).filter(index => absolute_ranks[index] == platz)
             
             // Tiebreaker 1 ist: meiste richtige Schätzungen
-            let neue_absolute_ranks = tiebreakerplatzhalter(partie,indices,platz)
+            let neue_absolute_ranks = tiebreaker2(partie,indices,platz)
+            
+            // Übernehme neue Platzierungen
+            for(const i of indices){
+                absolute_ranks[i] = neue_absolute_ranks[i]
+            }
+        }
+    }
+    
+    return absolute_ranks
+}
+
+/**  Tiebreak nummer 2: Ermittle Platzierungen einer Spieleruntermenge entsprechend dem höchsten Einzelergebnis
+* @param {object}   partie      Die gespielte Partie
+* @param {Array}    indices     Die Indices, die die Untermenge an Spielern darstellt, über die der Tiebreaker angewand werden soll
+* @param {Number}   umkaempfte_platzierung Die Platzierung, die der tiebreakgewinner erhalten soll
+* @return {Array}       Die Platzierungen der Spieleruntermenge zB  [2, , , 3,4]
+**/
+function tiebreaker2(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
+    
+    console.log('Tiebreaker2')
+    
+    // Entferne nicht gespielte Runden aus der Punkte tabelle
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    
+    // Finde das beste Einzelergebnis
+    let besteEinzelergebnisse = new Array(partie.spieler.length).fill(-Infinity)
+    for(const i of indices){
+        for(const runde of range(punktetabelle_einfach.length-1)){
+            if(punktetabelle_einfach[runde+1][i] - punktetabelle_einfach[runde][i] > besteEinzelergebnisse[i])
+                besteEinzelergebnisse[i] = punktetabelle_einfach[runde+1][i] - punktetabelle_einfach[runde][i]
+        }
+    }
+    
+    // Ranke nach Anzahl schätzungen
+    let relative_ranks = rankings(besteEinzelergebnisse)
+    let absolute_ranks = []
+    for(const i of indices){
+        absolute_ranks[i] =  relative_ranks[i] - 1 + umkaempfte_platzierung
+    }
+
+    
+    // console.log(besteEinzelergebnisse)
+    // console.log(relative_ranks)
+    // console.log(absolute_ranks)
+    
+    // Prüfe auf Gleichplatzierungen und führe Tiebraker aus
+    let umkaempfte_platzierungen = findDuplicates(absolute_ranks)
+    if(umkaempfte_platzierungen.size){
+        for(const platz of umkaempfte_platzierungen){
+            // Indices der Spieler im Tabellenblatt für die der Tiebreaker ausgeführt werden muss
+            indices = range(partie.spieler.length).filter(index => absolute_ranks[index] == platz)
+            
+            // Tiebreaker 1 ist: meiste richtige Schätzungen
+            let neue_absolute_ranks = tiebreaker3(partie,indices,platz,besteEinzelergebnisse)
+            
+            // Übernehme neue Platzierungen
+            for(const i of indices){
+                absolute_ranks[i] = neue_absolute_ranks[i]
+            }
+        }
+    }
+    
+    return absolute_ranks
+}
+
+/**  Tiebreak nummer 3: Ermittle Platzierungen einer Spieleruntermenge entsprechend der häufigkeit des besten einzelergebnisses
+* @param {object}   partie      Die gespielte Partie
+* @param {Array}    indices     Die Indices, die die Untermenge an Spielern darstellt, über die der Tiebreaker angewand werden soll
+* @param {Array}    besteEinzelergebnisse Die besten Einzelergebnisse der spieler, berechnet in tiebreaker1
+* @param {Number}   umkaempfte_platzierung Die Platzierung, die der tiebreakgewinner erhalten soll
+* @return {Array}       Die Platzierungen der Spieleruntermenge zB  [2, , , 3,4]
+**/
+function tiebreaker3(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1,besteEinzelergebnisse){
+
+    console.log('Tiebreaker3')
+    
+    // Entferne nicht gespielte Runden aus der Punkte tabelle
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    
+
+
+    // Finde, wie oft das beste Einzelergebnis erspielt wurde
+    let anzahl_besteEinzelergebnisse = new Array(partie.spieler.length).fill(0)
+    for(const i of indices){
+        for(const runde of range(punktetabelle_einfach.length-1)){
+            if(punktetabelle_einfach[runde+1][i] - punktetabelle_einfach[runde][i] == besteEinzelergebnisse[i])
+                anzahl_besteEinzelergebnisse[i]++
+        }
+
+    }
+    
+    
+    // Ranke nach Anzahl schätzungen
+    let relative_ranks = rankings(anzahl_besteEinzelergebnisse)
+    let absolute_ranks = []
+
+    
+    for(const i of indices){
+        absolute_ranks[i] =  relative_ranks[i] - 1 + umkaempfte_platzierung
+    }
+
+    
+    // console.log(anzahl_besteEinzelergebnisse)
+    // console.log(relative_ranks)
+    // console.log(absolute_ranks)
+    
+    // Prüfe auf Gleichplatzierungen und führe Tiebraker aus
+    let umkaempfte_platzierungen = findDuplicates(absolute_ranks)
+    if(umkaempfte_platzierungen.size){
+        for(const platz of umkaempfte_platzierungen){
+            // Indices der Spieler im Tabellenblatt für die der Tiebreaker ausgeführt werden muss
+            indices = range(partie.spieler.length).filter(index => absolute_ranks[index] == platz)
+            
+            // Tiebreaker 1 ist: meiste richtige Schätzungen
+            let neue_absolute_ranks = tiebreaker4(partie,indices,platz,besteEinzelergebnisse)
+            
+            // Übernehme neue Platzierungen
+            for(const i of indices){
+                absolute_ranks[i] = neue_absolute_ranks[i]
+            }
+        }
+    }
+    
+    return absolute_ranks
+}
+
+/**  Tiebreak nummer 4: Ermittle Platzierungen einer Spieleruntermenge entsprechend dem zweithöchsten Einzelergebnis
+* @param {object}   partie      Die gespielte Partie
+* @param {Array}    indices     Die Indices, die die Untermenge an Spielern darstellt, über die der Tiebreaker angewand werden soll
+* @param {Array}    besteEinzelergebnisse Die besten Einzelergebnisse der spieler, berechnet in tiebreaker1
+* @param {Number}   umkaempfte_platzierung Die Platzierung, die der tiebreakgewinner erhalten soll
+* @return {Array}       Die Platzierungen der Spieleruntermenge zB  [2, , , 3,4]
+**/
+function tiebreaker4(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1,besteEinzelergebnisse){
+    
+    console.log('Tiebreaker4')
+
+    // Entferne nicht gespielte Runden aus der Punkte tabelle
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    
+    // Finde, wie oft das beste Einzelergebnis erspielt wurde
+    let zweitbesteEinzelergebnisse = new Array(partie.spieler.length).fill(0)
+    for(const i of indices){
+        for(const runde of range(punktetabelle_einfach.length-1)){
+            if(punktetabelle_einfach[runde+1][i] - punktetabelle_einfach[runde][i] > zweitbesteEinzelergebnisse[i] && punktetabelle_einfach[runde+1][i] - punktetabelle_einfach[runde][i] < besteEinzelergebnisse[i])
+                zweitbesteEinzelergebnisse[i] = punktetabelle_einfach[runde+1][i] - punktetabelle_einfach[runde][i]
+        }
+    }
+    
+    // Ranke nach Anzahl schätzungen
+    let relative_ranks = rankings(zweitbesteEinzelergebnisse)
+    let absolute_ranks = []
+    for(const i of indices){
+        absolute_ranks[i] =  relative_ranks[i] - 1 + umkaempfte_platzierung
+    }
+
+    // console.log(zweitbesteEinzelergebnisse)
+    // console.log(relative_ranks)
+    // console.log(absolute_ranks)
+    
+
+    // Prüfe auf Gleichplatzierungen und führe Tiebraker aus
+    let umkaempfte_platzierungen = findDuplicates(absolute_ranks)
+    if(umkaempfte_platzierungen.size){
+        for(const platz of umkaempfte_platzierungen){
+            // Indices der Spieler im Tabellenblatt für die der Tiebreaker ausgeführt werden muss
+            indices = range(partie.spieler.length).filter(index => absolute_ranks[index] == platz)
+            
+            // Tiebreaker 1 ist: meiste richtige Schätzungen
+            let neue_absolute_ranks = tiebreaker5(partie,indices,platz)
             
             // Übernehme neue Platzierungen
             for(const i of indices){
@@ -314,6 +510,176 @@ function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_plat
 * @param {Number}   umkaempfte_platzierung Die Platzierung, die der tiebreakgewinner erhalten soll
 * @return {Array}       Die Platzierungen der Spieleruntermenge zB  [2, , , 3,4]
 **/
+function tiebreaker5(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
+    
+
+    console.log('Tiebreaker5')
+
+    
+
+    if(partie.regeln != 'Turnier' ||
+        partie.aktuelle_runde != undefined){
+        return new Array(partie.spieler.length).fill(umkaempfte_platzierung)
+    }
+
+   
+    boxContainer = document.getElementById('modalContainer')
+
+    boxContainer.innerHTML += `
+    <div id="modal${umkaempfte_platzierung}" class="modal-overlay show">
+  <div class="modal-box show">
+    <button id="closeBtn${umkaempfte_platzierung}" class="modal-close">×</button>
+    <h3>Gleichstand</h3>
+    <p>Die folgenden Spieler müssen eine Teibreaker-Runde mit 5 Karten Spielen:</p>
+    <div style="padding: 10px">
+    <div id="modalSpielernamen${umkaempfte_platzierung}" class="Spielernamen row"></div>
+    <div id="modalschaetzunginputFelder${umkaempfte_platzierung}" class="modalschaetzunginputFelder row"></div>
+    <div id="modalsticheinputFelder${umkaempfte_platzierung}" class="modalsticheinputFelder row"></div>
+    </div>
+    <button id="submitRundeButton${umkaempfte_platzierung}" onclick="submitTiebreaker5([${indices}],${umkaempfte_platzierung})"> Eintragen </button>
+    </div>
+</div>`
+
+    tiebreaker_spieler = []
+    for(const i in indices){
+        tiebreaker_spieler[i] = partie.spieler[indices[i]]
+    }
+
+    reihe = document.getElementById(`modalSpielernamen${umkaempfte_platzierung}`)
+    reihe.innerHTML = ''
+    for(const i in tiebreaker_spieler){
+        reihe.innerHTML += `
+                    <span id="player${i}" class="playerName">
+                      ${tiebreaker_spieler[i]}
+                    </span>`
+    }
+
+
+
+    reihe = document.getElementById(`modalschaetzunginputFelder${umkaempfte_platzierung}`)
+    reihe.innerHTML = ''
+    for(const i in tiebreaker_spieler){
+        reihe.innerHTML += `
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control schaetzunginput schaetzunginput${umkaempfte_platzierung} rundeninput inputBold" placeholder="Ansage" id="schaetzung${i}" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this,${umkaempfte_platzierung});" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>`
+
+    }
+
+    reihe = document.getElementById(`modalsticheinputFelder${umkaempfte_platzierung}`)
+    reihe.innerHTML = ''
+    for(const i in tiebreaker_spieler){
+        reihe.innerHTML += `
+                    <div class="col-3 inputField"> 
+                      <input type="text" class="form-control stichinput stichinput${umkaempfte_platzierung} rundeninput inputBold" placeholder="Stiche" id="stiche${i}" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber2(this,${umkaempfte_platzierung});" style="text-align: center;"> 
+                      <div class="invalid-feedback hide">
+                        Invalid count
+                      </div> 
+                    </div>`
+
+    }
+
+    modal = document.getElementById(`modal${umkaempfte_platzierung}`);
+    closeBtn = document.getElementById(`closeBtn${umkaempfte_platzierung}`);
+
+    
+
+
+    /* Close when clicking outside the modal box */
+    modal.addEventListener("click", function (event) {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
+    /* Close when pressing Escape */
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        closeModal();
+      }
+    });
+
+
+    return new Array(partie.spieler.length).fill(umkaempfte_platzierung)
+}
+
+function closeModal(id="") {
+      modal = document.getElementById(`modal${id}`);
+      modal.innerHTML = ""
+      modal.classList.remove("show");
+      modal.classList.remove("modal-overlay");
+    }
+
+
+function submitTiebreaker5(indices,umkaempfte_platzierung){
+        console.log("hey")
+        console.log(`umkaempfte_platzierung = ${umkaempfte_platzierung}`)
+
+        let inputs_valide = false
+
+        if(alleFelderGefuellt(id=umkaempfte_platzierung)){
+            inputs_valide = true
+
+            if(partie.regeln=='Turnier'){
+            inputs_valide = checkInputsForTurnierregeln(id=umkaempfte_platzierung)
+            }
+        }
+
+        if(inputs_valide){
+            // Entnehme Eingaben
+            let schaetzung_inputs = document.getElementsByClassName(`schaetzunginput${umkaempfte_platzierung}`)
+            let stich_inputs = document.getElementsByClassName(`stichinput${umkaempfte_platzierung}`)
+            let schaetzungen = []
+            let stiche = []
+            let punkte = []
+
+            console.log(indices)
+            for(let i=0; i<indices.length; i++){
+                console.log(i)
+                stiche[i] = Number(stich_inputs[i].value)
+                schaetzungen[i] = Number(schaetzung_inputs[i].value)
+
+                if(schaetzungen[i] == stiche[i]){ 
+                    // Spieler hat richtig geschätzt: 20 Punkte plu 10 Punkte pro Stich
+                    punkte[i] = 20 + 10*stiche[i] 
+                }
+                else{ 
+                    // Spieler hat falsch geschätzt: 10 Punkte abzug pro falsch geschätztem stich
+                    punkte[i] = -10*Math.abs(stiche[i]-schaetzungen[i]) }
+            }
+            
+            
+            let relative_ranks = rankings(punkte)
+
+            //console.log(partie.platzierungen)
+            //console.log(indices)
+            //console.log(relative_ranks)
+
+            for(const i in indices){
+                partie.platzierungen[indices[i]] =  relative_ranks[i] - 1 + umkaempfte_platzierung
+            }
+
+            console.log(partie.platzierungen)
+
+            //Endstand updaten
+            baueneu_endstandContainer()
+
+            //Pop-up schließen
+            closeModal(id=umkaempfte_platzierung)
+
+
+        }
+    }
+
+/** Platzhalter für noch nicht geschriebene Tiebreaker
+* @param {object}   partie      Die gespielte Partie
+* @param {Array}    indices     Die Indices, die die Untermenge an Spielern darstellt, über die der Tiebreaker angewand werden soll
+* @param {Number}   umkaempfte_platzierung Die Platzierung, die der tiebreakgewinner erhalten soll
+* @return {Array}       Die Platzierungen der Spieleruntermenge zB  [2, , , 3,4]
+**/
 function tiebreakerplatzhalter(partie,indices=range(partie.spieler.length),umkaempfte_platzierung=1){
     
     
@@ -324,6 +690,7 @@ function tiebreakerplatzhalter(partie,indices=range(partie.spieler.length),umkae
     
     return absolute_ranks
 }
+
 
 
 
@@ -458,33 +825,35 @@ function baue_neu_rundeninfo(partie){
 
 }
 
-function validateNumber(self){
+function validateNumber(self,id=""){
 
+    console.log(`validating, id given is ${id}`)
     checkAndCorrectValidInput(self)
-    //überprüfe ob alle Felder gefüllt sind und färbe den 'Runde eintragen Knopf'
 
-    activateSubmitButtonIfInputsValid()
+    //überprüfe ob alle Felder gefüllt sind und färbe den 'Runde eintragen Knopf'
+    activateSubmitButtonIfInputsValid(id)
     
 }
 
-function validateNumber2(self){
+function validateNumber2(self,id=""){
 
+    console.log(`validating2, id given is ${id}`)
     // Vermeide weirdes Usergefühl
     if(self.value != ''){
 
 
         if(checkAndCorrectValidInput(self) == true){
             let stichsumme = 0
-            let stiche_inputs = document.getElementsByClassName('stichinput')
+            let stiche_inputs = document.getElementsByClassName(`stichinput${id}`)
             for(const i of stiche_inputs){
                 if(i.value != ''){stichsumme += Number(i.value)}
             }
 
 
-            if(stichsumme > partie.aktuelle_runde){
+            if(stichsumme > partie.aktuelle_runde || (partie.aktuelle_runde == undefined && stichsumme > 5)){
                 self.value = self.value.substring(0, self.value.length - 1);
             }
-            else if(stichsumme == partie.aktuelle_runde){
+            else if(stichsumme == partie.aktuelle_runde || (partie.aktuelle_runde == undefined && stichsumme == 5) ){
                 for(const i of stiche_inputs){
                     if(i.value == ''){i.value=0}
                 }
@@ -492,7 +861,7 @@ function validateNumber2(self){
         }
     }
 
-    activateSubmitButtonIfInputsValid()
+    activateSubmitButtonIfInputsValid(id)
 }
 
 function isPositiveInteger(string){
@@ -501,10 +870,15 @@ function isPositiveInteger(string){
 
 function checkAndCorrectValidInput(self){
     //Versuche zuerst Eingabe zu fixen
-    if(!isPositiveInteger(self.value) | partie.aktuelle_runde < self.value){
+    if(!isPositiveInteger(self.value) || 
+        partie.aktuelle_runde < self.value || 
+        (partie.aktuelle_runde == undefined && 5 < self.value)){
+
         self.value = self.value.substring(0, self.value.length - 1);
         //wenn nicht erfolgreich, lösche eingabe
-        if(!isPositiveInteger(self.value) | partie.aktuelle_runde < self.value){
+        if(!isPositiveInteger(self.value) || 
+            partie.aktuelle_runde < self.value ||
+            (partie.aktuelle_runde == undefined && 5 < self.value)){
             self.value = ''
         }
         return false
@@ -512,8 +886,8 @@ function checkAndCorrectValidInput(self){
     else return true
 }
 
-function alleFelderGefuellt(){
-    let runden_inputs = document.getElementsByClassName('rundeninput')
+function alleFelderGefuellt(id=""){
+    let runden_inputs = document.getElementsByClassName(`rundeninput${id}`)
     let alle_inputs_gefüllt = true;
     for(const input of runden_inputs){
         if(input.value == ''){alle_inputs_gefüllt=false}
@@ -521,31 +895,38 @@ function alleFelderGefuellt(){
     return alle_inputs_gefüllt
 }
 
-function reset_inputs(){
-    let runden_inputs = document.getElementsByClassName('rundeninput')
+function reset_inputs(id=""){
+    let runden_inputs = document.getElementsByClassName(`rundeninput${id}`)
     for(const input of runden_inputs){
         input.value = ''
     }
 }
 
-function disableSubmitButton(){
-    let submitButton = document.getElementById('submitRundeButton')
+function disableSubmitButton(id=""){
+    let submitButton = document.getElementById(`submitRundeButton${id}`)
     submitButton.classList.remove('disabled')
     submitButton.className += ' disabled'
 }
 
-function enableSubmitButton(){
-    let submitButton = document.getElementById('submitRundeButton')
+function enableSubmitButton(id=""){
+    let submitButton = document.getElementById(`submitRundeButton${id}`)
     submitButton.classList.remove('disabled')
 }
 
 function baue_neu_gesamtpunktzahl(){
+    
+    platzierungen = ermittle_platzierungen(partie)
+
+    partie.platzierungen = platzierungen
+
+    console.log(platzierungen)
+
     for(let i in partie.spieler){
         let punktzahl = document.getElementById(`punkte${i}`)
         punktzahl.innerText = partie.punktetabelle[partie.letzte_runde][i]
         
         
-        if(partie.punktetabelle[partie.letzte_runde][i] == partie.punktetabelle[partie.letzte_runde].reduce((a, b) => Math.max(a, b), -Infinity)){
+        if(platzierungen[i] == 1){
             punktzahl.className += ' fuehrender'
 
             }
@@ -613,33 +994,33 @@ function baue_inputs(){
 
 
 
-function activateSubmitButtonIfInputsValid(){
+function activateSubmitButtonIfInputsValid(id=""){
     let inputs_valide = false
 
-    if(alleFelderGefuellt()){
+    if(alleFelderGefuellt(id)){
         inputs_valide = true
 
         if(partie.regeln=='Turnier'){
-        inputs_valide = checkInputsForTurnierregeln()
+        inputs_valide = checkInputsForTurnierregeln(id)
         }
     }
 
     if(inputs_valide){
-        enableSubmitButton()
+        enableSubmitButton(id)
     }
-    else disableSubmitButton()
+    else disableSubmitButton(id)
 }
 
-function checkInputsForTurnierregeln(){
+function checkInputsForTurnierregeln(id=""){
     let inputs_valide = true
 
-    if(!alleFelderGefuellt()){throw new Error('Something went wrong')}
+    if(!alleFelderGefuellt(id)){throw new Error('Something went wrong')}
 
     
-    inputs_valide = inputs_valide & checkStichzahlGleichRundenzahl()
+    inputs_valide = inputs_valide & checkStichzahlGleichRundenzahl(id)
     
-    if(partie.aktuelle_runde >= 2){
-        inputs_valide = inputs_valide & checkSchaetzungenUngleichRundenzahl()
+    if(partie.aktuelle_runde >= 2 || partie.aktuelle_runde == undefined){
+        inputs_valide = inputs_valide & checkSchaetzungenUngleichRundenzahl(id)
     }
 
     return inputs_valide
@@ -647,22 +1028,40 @@ function checkInputsForTurnierregeln(){
 
 }
 
-function checkStichzahlGleichRundenzahl(){
+function checkStichzahlGleichRundenzahl(id=""){
+    console.log(`sgr, id given is ${id}`)
     let stichsumme = 0 
-    let stiche_inputs = document.getElementsByClassName('stichinput')
+    let stiche_inputs = document.getElementsByClassName(`stichinput${id}`)
     for(const i of stiche_inputs){
         if(i.value != ''){stichsumme += Number(i.value)}
     }
-    return stichsumme == partie.aktuelle_runde
+
+    console.log(partie.aktuelle_runde)
+    console.log(partie.aktuelle_runde == undefined)
+    console.log(stichsumme)
+
+    if(partie.aktuelle_runde != undefined)
+        return stichsumme == partie.aktuelle_runde
+
+    // Wenn im tiebracker spielt man mit 5 Karten
+    if(partie.aktuelle_runde == undefined)
+        return stichsumme == 5
 }
 
-function checkSchaetzungenUngleichRundenzahl(){
+function checkSchaetzungenUngleichRundenzahl(id=""){
     let schaetzungensumme = 0 
-    let schaetzungen_inputs = document.getElementsByClassName('schaetzunginput')
+    let schaetzungen_inputs = document.getElementsByClassName(`schaetzunginput${id}`)
     for(const i of schaetzungen_inputs){
         if(i.value != ''){schaetzungensumme += Number(i.value)}
     }
-    return schaetzungensumme != partie.aktuelle_runde 
+    
+
+    if(partie.aktuelle_runde != undefined)
+        return schaetzungensumme != partie.aktuelle_runde 
+
+    // Wenn im tiebracker spielt man mit 5 Karten
+    if(partie.aktuelle_runde == undefined)
+        return schaetzungensumme != 5
 }
 
 
@@ -671,11 +1070,32 @@ function ersetzeImputContainerMitEndstandContainer(){
     pagerowcode = `
           <div id="EndstandContainer" class="container sticky-top text-center p-2 row fancy-bg" style="max-width: 100vw;">
             <div class="row">`
-    pagerowcode += EndstandSpaltePlatzierungen()
-    pagerowcode += EndstandSpalteSpieler()
-    pagerowcode += EndstandSpaltePartiepunkte()
+
+    bla = rankings_simple_by_lowest(partie.platzierungen)
+    anzeigereihenfolge = []
+    for(let i=1; i<=bla.length; i++){
+        anzeigereihenfolge[i-1] = bla.indexOf(i)
+    }
+
+    pagerowcode +=`
+            <div id='platzierungenspalte' class='endstandspalte'>`
+    pagerowcode += EndstandSpaltePlatzierungen(anzeigereihenfolge)
+    pagerowcode +=`
+            </div>
+            <div id='spielerspalte' class='endstandspalte'>`
+    pagerowcode += EndstandSpalteSpieler(anzeigereihenfolge)
+    pagerowcode +=`
+            </div>
+            <div id='ppspalte' class='endstandspalte'>`
+    pagerowcode += EndstandSpaltePartiepunkte(anzeigereihenfolge)
+    pagerowcode +=`
+            </div>`
     if(partie.regeln=='Turnier') {
-        pagerowcode += EndstandSpalteTurnierpunkte()
+        pagerowcode +=`
+                <div id='tpspalte' class='endstandspalte'>`
+        pagerowcode += EndstandSpalteTurnierpunkte(anzeigereihenfolge)
+        pagerowcode += `
+        </div>`
         }
     
     pagerowcode += `
@@ -735,79 +1155,92 @@ function ersetzeImputContainerMitEndstandContainer(){
     
 }
     
+function baueneu_endstandContainer(){
+    bla = rankings_simple_by_lowest(partie.platzierungen)
+    anzeigereihenfolge = []
+    for(let i=1; i<=bla.length; i++){
+        anzeigereihenfolge[i-1] = bla.indexOf(i)
+    }
+
+    console.log(anzeigereihenfolge)
+
+    spalte = document.getElementById("platzierungenspalte")
+
+    spalte.innerHTML = EndstandSpaltePlatzierungen(anzeigereihenfolge)
+
+    spalte = document.getElementById("spielerspalte")
+
+    spalte.innerHTML = EndstandSpalteSpieler(anzeigereihenfolge)
+
+    spalte = document.getElementById("ppspalte")
+
+    spalte.innerHTML = EndstandSpaltePartiepunkte(anzeigereihenfolge)
+
+    if(partie.regeln=='Turnier') {
+
+    spalte = document.getElementById("tpspalte")
+
+    spalte.innerHTML = EndstandSpalteTurnierpunkte(anzeigereihenfolge)
+
+    }
+}
 
 
-function EndstandSpaltePlatzierungen(){
+function EndstandSpaltePlatzierungen(anzeigereihenfolge){
     code = `
-            <div id='platzierungenspalte' class='endstandspalte'>
               <div class='endstandspaltenheader'>
                 Platz
               </div>`
-    for(i of range(partie.spieler.length))
+    for(i of anzeigereihenfolge)
         code += `
-              <div id='platz${i+1}' class="endstandspaltenelement">
-                ${i+1}
+              <div id='platzendstandreihe${i}' class="endstandspaltenelement platz${partie.platzierungen[i]}">
+                ${partie.platzierungen[i]}
               </div>`
-    code += `
-    </div>`
+    
 
     return code
 }
 
-function EndstandSpalteSpieler(){
+function EndstandSpalteSpieler(anzeigereihenfolge){
     code = `
-            <div id='spielerspalte' class='endstandspalte'>
               <div class='endstandspaltenheader'>
                 Spieler
               </div>`
-    platzierungen = ermittle_platzierungen(partie)
-    for(i of range(partie.spieler.length)){
-        spielerindex = platzierungen.findIndex(p => p == i+1)
+    for(i of anzeigereihenfolge){
         code += `
-              <div id='spielerplatz${i+1}' class="endstandspaltenelement">
-                ${partie.spieler[spielerindex]}
+              <div id='spielerendstandreihe${i}' class="endstandspaltenelement">
+                ${partie.spieler[i]}
               </div>`
         }
-    code += `
-    </div>`
+    return code
+}
+
+function EndstandSpaltePartiepunkte(anzeigereihenfolge){
+    code = `
+              <div class='endstandspaltenheader'>
+                EP
+              </div>`
+    for(i of anzeigereihenfolge){
+        code += `
+              <div id='ppendstandreihe${i+1}' class="endstandspaltenelement">
+                ${partie.punktetabelle[partie.letzte_runde][i]}
+              </div>`
+        }
 
     return code
 }
 
-function EndstandSpaltePartiepunkte(){
+function EndstandSpalteTurnierpunkte(anzeigereihenfolge){
     code = `
-            <div id='ppspalte' class='endstandspalte'>
               <div class='endstandspaltenheader'>
-                Partiepunkte
+                TP
               </div>`
-    platzierungen = ermittle_platzierungen(partie)
-    for(i of range(partie.spieler.length)){
-        spielerindex = platzierungen.findIndex(p => p == i+1)
+    for(i of anzeigereihenfolge){
         code += `
-              <div id='ppplatz${i+1}' class="endstandspaltenelement">
-                ${partie.punktetabelle[partie.letzte_runde][spielerindex]}
+              <div id='tpendstandreihe${i+1}' class="endstandspaltenelement">
+                ${turnierpunkte(partie.platzierungen[i])}
               </div>`
         }
-    code += `
-    </div>`
-
-    return code
-}
-
-function EndstandSpalteTurnierpunkte(){
-    code = `
-            <div id='ppspalte' class='endstandspalte'>
-              <div class='endstandspaltenheader'>
-                Turnierpunkte
-              </div>`
-    for(i of range(partie.spieler.length)){
-        code += `
-              <div id='tpplatz${i+1}' class="endstandspaltenelement">
-                ${turnierpunkte(i+1)}
-              </div>`
-        }
-    code += `
-    </div>`
 
     return code
 }
@@ -843,7 +1276,7 @@ function baueInputUndResultsContainer(){
                 </div>
               </div>
               <div class="container">
-                <div id="Spielernamen" class="" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Name">
+                <div id="Spielernamen" class="Spielernamen" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Name">
                 </div>
                 <div id="gesamtpunktzahlen" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-title="Total score">
                 </div>
@@ -940,13 +1373,13 @@ function baueInputUndResultsContainer(){
             
             // Baue die Rundeninfos neu
             baue_neu_rundeninfo(partie)
+            
 
             // Setze Inputs und Submitbutton zurück
             reset_inputs()
             disableSubmitButton()
 
             console.log(partie.aktuelle_runde) 
-            console.log(partie.aktuelle_runde == undefined)
 
 
             if(partie.aktuelle_runde == undefined){
@@ -1149,18 +1582,16 @@ function baueNavContainer(){
                             ${partie.aktuelle_runde}
                           </span>
                       </span>
-                    <div>
-                      <span id="roundInfo2">
+                      <div id="roundInfo2">
                         Spieler
                         <span class="aktuellerGeber">
                             ${partie.geber[partie.aktuelle_runde]}
                         </span> 
                         gibt jedem
-                        <span class="aktuelleRundenzahl">
+                        <span class="aktuelleRundenzahl aktuellerGeber">
                             ${partie.aktuelle_runde}
                         </span> 
                         Karten
-                      </span>
                     </div> 
                   </div> `
 }
@@ -1218,8 +1649,167 @@ function TestLadeEndstand(){
 }
 
 
-TestLadeEndstand()
 
+function testEndstandTiebreaker1(){
+    let schaetzungen = [0,5,5,0,0]
+    let stiche = [0,5,5,0,0]
+    
+    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam','Ddam','Edam'],'Adam')
+    
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,[0,5,4,5,4],[5,4,4,4,4])
+    update_partie(partie,[0,5,4,5,4],[5,5,4,5,4])
+    update_partie(partie,[0,5,4,5,4],[5,5,4,5,4])
+    update_partie(partie,[0,5,4,5,4],[5,5,4,5,4])
+    update_partie(partie,[0,5,4,5,4],[5,5,4,5,4])
+    update_partie(partie,[0,5,4,5,4],[5,5,4,5,4])
+    update_partie(partie,[0,5,4,5,4],[5,5,4,5,4])
+    update_partie(partie,[0,5,4,5,4],[5,5,4,5,4])
+
+    baueInputUndResultsContainer()
+
+    bauePunktetabelle(partie)
+
+
+    baue_inputcontainer()
+
+    baue_neu_rundeninfo(partie)
+    baueNavContainer()
+}
+
+function testEndstandTiebreaker2(){
+    let schaetzungen = [0,5,5]
+    let stiche = [5,5,5]
+    
+    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+    
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,[0,5,4],[5,5,4])
+    update_partie(partie,[0,5,6],[5,5,6])
+
+    baueInputUndResultsContainer()
+
+    bauePunktetabelle(partie)
+
+
+    baue_inputcontainer()
+
+    baue_neu_rundeninfo(partie)
+    baueNavContainer()
+}
+
+
+
+function testEndstandTiebreaker3(){
+    let schaetzungen = [0,5,5]
+    let stiche = [5,5,5]
+    
+    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+    
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,[5,5,4],[5,5,4])
+    update_partie(partie,[0,3,4],[5,3,4])
+
+    baueInputUndResultsContainer()
+
+    bauePunktetabelle(partie)
+
+
+    baue_inputcontainer()
+
+    baue_neu_rundeninfo(partie)
+    baueNavContainer()
+}
+
+function testEndstandTiebreaker4(){
+    let schaetzungen = [0,5,5]
+    let stiche = [5,5,5]
+    
+    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+    
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,[0,5,5],[5,5,5])
+    update_partie(partie,[0,2,1],[5,2,1])
+    update_partie(partie,[0,3,4],[5,3,4])
+
+    baueInputUndResultsContainer()
+
+    bauePunktetabelle(partie)
+
+
+    baue_inputcontainer()
+
+    baue_neu_rundeninfo(partie)
+    baueNavContainer()
+}
+
+function testEndstandTiebreaker5(){
+    let schaetzungen = [0,5,5,0,0]
+    let stiche = [5,5,5,5,5]
+    
+    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam','Ddam','Edam'],'Adam')
+    
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+    update_partie(partie,schaetzungen,stiche)
+
+    baueInputUndResultsContainer()
+
+    bauePunktetabelle(partie)
+
+
+    baue_inputcontainer()
+
+    baue_neu_rundeninfo(partie)
+    baueNavContainer()
+}
+
+
+
+function TestLadeBegonnenePartie(){
+    let schaetzungen = [0,2,5,2,4]
+    let stiche = [1,2,4,1,4]
+    
+    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+                baueInputUndResultsContainer()
+
+                bauePunktetabelle(partie)
+
+
+                baue_inputcontainer()
+
+                baue_neu_rundeninfo(partie)
+
+                baueNavContainer()
+}
+
+
+
+// TestLadeEndstand()
+TestLadeBegonnenePartie()
 
 
 

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WIZARD</title>
+  <link rel='stylesheet' href='/static/turniertabelle.css'>
+</head>
+  
+  
+  
+<body>
+  <div id="title" class="d-flex justify-content-center p-2 bg-wizardscore">
+    <div>
+      <i data-lucide="wand-sparkles"> 
+      </i>
+    </div>
+    <div>
+      WIZARD-Turnier Heidelberg 2026
+    </div> 
+    <!--
+    <div style="display: flex; gap: 3px">
+    <a href="tournament_view" style="color: #FFFFFF; text-decoration: none;" >
+    <button type="button" class="neuepartiebutton row" onclick="load('s1')">
+      <div class="row">
+        <div style="height: 1.4rem; margin:3px">
+          <i data-lucide="scroll-text">
+          </i>
+        </div>
+        <div style="height: fit-content; font-weight: 600;">
+          Neue Partie
+        </div>
+      </div>
+    </button> 
+    </a>
+    </div>
+  -->
+  </div>
+  <div id="navContainer" class="container">
+  <!--
+	<div class="pagerow">
+    <input type="text" class="form-control" placeholder="Spieler ID" id="spielerIDSuche" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
+    <button type="button" class="neuepartiebutton row" onclick="aufSpielertabelleWeiterleiten()"> Suchen </button>
+  </div>
+  -->
+  </div>
+
+  <div class="pagerow"></div>
+  <div id="blockContainer" class="container text-center">
+  </div>
+  
+
+
+    
+
+  <script defer src="https://unpkg.com/lucide@latest"></script>
+  <script defer>lucide.createIcons();</script>
+  <script src="/static/turniertabelle.js"></script>
+</body>
+
+</html>
