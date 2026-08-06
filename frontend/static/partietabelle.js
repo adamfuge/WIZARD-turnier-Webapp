@@ -1,11 +1,14 @@
 const auswaehlbare_regeln = ['Turnier','Casual']
-const auswaehlbare_tische = ['A','B','C','D','E']
+let auswaehlbare_tische 
 let partie 
 const rundenzahlen_ohne_ende = [,,,[2,4,6,8,10,12,14,16,18,20],[1,3,5,7,9,11,12,13,14,15], [2,4,5,6,7,8,9,10,11,12]
         ]
 
-function new_partie(regeln,tisch,spieler,erster_geber){
+
+
+function new_partie(regeln,vorrunde,tisch,spieler,erster_geber){
     let partie = {
+    vorrunde: vorrunde,
     tisch: tisch,
     spieler: spieler,
     punktetabelle: [new Array(spieler.length).fill(0)],
@@ -160,15 +163,33 @@ function partie_auswerten(partie){
     if(partie.aktuelle_runde != undefined){
         throw new Error("Spiel noch nicht zuende")
     }
+
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    
+    console.log("punktetabelle_einfach")
+    console.log(punktetabelle_einfach)
+
+    let anzahl_richtiger_schaetzungen = new Array(partie.spieler.length).fill(0)
+    for(const i of range(partie.spieler.length)){
+        for(const runde of range(punktetabelle_einfach.length-1)){
+            if(punktetabelle_einfach[runde][i]<punktetabelle_einfach[runde+1][i]) anzahl_richtiger_schaetzungen[i]++
+        }
+    }
+
+    console.log("anzahl_richtiger_schaetzungen")
+    console.log(anzahl_richtiger_schaetzungen)
     
     //Per Turnierordnung festgelegt:
     let partie_ergebnisse = []
     for(let i = 0; i<partie.spieler.length; i++)
     partie_ergebnisse[i] = { 
         tisch: partie.tisch,
+        vorrunde: partie.vorrunde,
         spieler: partie.spieler[i],
-        turnierpunkte: rankings(partie.punktetabelle[partie.letzte_runde]).map(turnierpunkte)[i],
+        platzierung: ermittle_platzierungen(partie)[i],
+        turnierpunkte: ermittle_platzierungen(partie).map(turnierpunkte)[i],
         partiepunkte: partie.punktetabelle[partie.letzte_runde][i],
+        plusrunden: anzahl_richtiger_schaetzungen[i],
         zeitpunkt: + new Date()
 }
     return partie_ergebnisse
@@ -356,7 +377,7 @@ function tiebreaker2(partie,indices=range(partie.spieler.length),umkaempfte_plat
         }
     }
     
-    // Ranke nach Anzahl schätzungen
+    // Ranke nach beste Einzelergebnis
     let relative_ranks = rankings(besteEinzelergebnisse)
     let absolute_ranks = []
     for(const i of indices){
@@ -1154,6 +1175,29 @@ function ersetzeImputContainerMitEndstandContainer(){
 
     
 }
+
+function partie_im_server_eintragen(tischname,vorrunde){
+    //POST the spielergebnisse to the backend
+    spielstart = {'table_name': tischname, 'vorrunde': vorrunde}
+    
+    console.log(spielstart)
+
+    fetch('/post_match_start', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(spielstart),
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Success:', data);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+
+}
     
 function baueneu_endstandContainer(){
     bla = rankings_simple_by_lowest(partie.platzierungen)
@@ -1525,8 +1569,13 @@ function bauePartieerstellenContainer(){
 
             if(findDuplicates(spieler).size == 0){
                     
+                
                 // Yay, Partie kann beginnen
+                if(RegelnWaehlen.value == 'Turnier')
+                    partie_im_server_eintragen(TischWaehlen.value,5)
+                
                 partie = new_partie(RegelnWaehlen.value,
+                                    1,
                                     TischWaehlen.value,
                                     spieler,
                                     GeberWaehlen.value)
@@ -1549,11 +1598,32 @@ function bauePartieerstellenContainer(){
 }
 
 function baueTischAuswahl(){
-    let TischWaehlen = document.getElementById('TischWaehlen')
-    for(const tisch of auswaehlbare_tische){
-        TischWaehlen.innerHTML += `
-        <option> ${tisch} </option>`
-    }
+    fetch('/get_table_names', {
+                method: 'GET'
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Success fetching tables:', data);
+                console.log(JSON.parse(data));
+                console.log('hihi');
+                console.log(['A','B','C','D','E']);
+                auswaehlbare_tische = JSON.parse(data);
+                let TischWaehlen = document.getElementById('TischWaehlen')
+                for(const tisch of auswaehlbare_tische){
+                    TischWaehlen.innerHTML += `
+                    <option> ${tisch} </option>`
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching tables:', error);
+                auswaehlbare_tische = ['A','B','C','D','E'];
+                let TischWaehlen = document.getElementById('TischWaehlen')
+                for(const tisch of auswaehlbare_tische){
+                    TischWaehlen.innerHTML += `
+                    <option> ${tisch} </option>`
+                }
+            });
+    
 }
 
 function baueGeberAuswahl(){
@@ -1613,6 +1683,26 @@ function LadeNeuePartieErstellen(){
     bauePartieerstellenContainer()
 }
 
+function get_tische(){
+    console.log('hmm')
+    fetch('/get_table_names', {
+                method: 'GET'
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Success fetching tables:', data);
+                console.log(JSON.parse(data));
+                console.log('hihi');
+                console.log(['A','B','C','D','E']);
+                auswaehlbare_tische = JSON.parse(data);
+                return JSON.parse(data)
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                return ['A','B','C','D','E'];
+            });
+}
+
 let neuepartiebuttons = document.getElementsByClassName('neuepartiebutton')
 for(const neuepartiebutton of neuepartiebuttons){
     neuepartiebutton.onclick = LadeNeuePartieErstellen
@@ -1624,7 +1714,9 @@ function TestLadeEndstand(){
     let schaetzungen = [0,2,5,2,4]
     let stiche = [1,2,4,1,4]
     
-    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+    partie_im_server_eintragen('A',5)
+
+    partie = new_partie(regeln='Turnier',5,'A',['1','2','3'],'1')
     
     update_partie(partie,schaetzungen,stiche)
     update_partie(partie,schaetzungen,stiche)
@@ -1654,7 +1746,7 @@ function testEndstandTiebreaker1(){
     let schaetzungen = [0,5,5,0,0]
     let stiche = [0,5,5,0,0]
     
-    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam','Ddam','Edam'],'Adam')
+    partie = new_partie(regeln='Turnier',1,'A',['Adam ','Bdam','Cdam','Ddam','Edam'],'Adam')
     
     update_partie(partie,schaetzungen,stiche)
     update_partie(partie,[0,5,4,5,4],[5,4,4,4,4])
@@ -1681,7 +1773,7 @@ function testEndstandTiebreaker2(){
     let schaetzungen = [0,5,5]
     let stiche = [5,5,5]
     
-    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+    partie = new_partie(regeln='Turnier',1,'A',['Adam ','Bdam','Cdam'],'Adam')
     
     update_partie(partie,schaetzungen,stiche)
     update_partie(partie,schaetzungen,stiche)
@@ -1710,7 +1802,7 @@ function testEndstandTiebreaker3(){
     let schaetzungen = [0,5,5]
     let stiche = [5,5,5]
     
-    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+    partie = new_partie(regeln='Turnier',1,'A',['Adam ','Bdam','Cdam'],'Adam')
     
     update_partie(partie,schaetzungen,stiche)
     update_partie(partie,schaetzungen,stiche)
@@ -1737,7 +1829,7 @@ function testEndstandTiebreaker4(){
     let schaetzungen = [0,5,5]
     let stiche = [5,5,5]
     
-    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+    partie = new_partie(regeln='Turnier',1,'A',['Adam ','Bdam','Cdam'],'Adam')
     
     update_partie(partie,schaetzungen,stiche)
     update_partie(partie,schaetzungen,stiche)
@@ -1764,7 +1856,7 @@ function testEndstandTiebreaker5(){
     let schaetzungen = [0,5,5,0,0]
     let stiche = [5,5,5,5,5]
     
-    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam','Ddam','Edam'],'Adam')
+    partie = new_partie(regeln='Turnier',1,'A',['Adam ','Bdam','Cdam','Ddam','Edam'],'Adam')
     
     update_partie(partie,schaetzungen,stiche)
     update_partie(partie,schaetzungen,stiche)
@@ -1793,7 +1885,7 @@ function TestLadeBegonnenePartie(){
     let schaetzungen = [0,2,5,2,4]
     let stiche = [1,2,4,1,4]
     
-    partie = new_partie(regeln='Turnier','A',['Adam ','Bdam','Cdam'],'Adam')
+    partie = new_partie(regeln='Turnier',1,'A',['Adam ','Bdam','Cdam'],'Adam')
                 baueInputUndResultsContainer()
 
                 bauePunktetabelle(partie)
@@ -1808,8 +1900,8 @@ function TestLadeBegonnenePartie(){
 
 
 
-// TestLadeEndstand()
-TestLadeBegonnenePartie()
+TestLadeEndstand()
+// LadeNeuePartieErstellen()
 
 
 

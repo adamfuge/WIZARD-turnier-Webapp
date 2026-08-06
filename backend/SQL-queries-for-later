@@ -1,0 +1,131 @@
+
+# Errechne rundenresultate
+
+SELECT m.id, p.id, play_points, RANK() OVER (PARTITION BY m.id ORDER BY play_points DESC) AS Rank
+FROM round_results rr1
+JOIN rounds r1 ON r1.id = rr1.round_id
+JOIN matches m ON r1.match_id = m.id
+JOIN vorrunden v ON m.vorrunde_id = v.id
+JOIN tables t ON m.table_id = t.id
+JOIN players p ON rr1.player_id = p.id
+WHERE r1.round_number >= all(
+	SELECT r2.round_number 
+	FROM rounds r2
+	WHERE r1.match_id = r2.match_id);
+
+# Errechne Turniertabelle
+
+WITH R as(
+            SELECT RANK() OVER (ORDER BY sum(tournament_points) DESC, 
+            							sum(mr.total_play_points) DESC)
+            							AS standing, 
+            		username, 
+            		sum(tournament_points) TP, 
+            		sum(mr.total_play_points) PP,
+            		status
+            FROM match_results mr
+            JOIN matches m ON mr.match_id = m.id
+            JOIN players p ON mr.player_id = p.id
+            GROUP BY p.id, username)
+
+            SELECT r1.standing, r1.username, r1.tp, r1.pp,
+            	CASE 
+            		WHEN status = 'hat_bereits_qualifikation' THEN 'hat_bereits_qualifikation' 
+            		WHEN status = 'disqualifiziert' THEN 'disqualifiziert'
+            		WHEN r1.standing <= 4 + (select count(*) from R r2 where r2.standing < r1.standing and r2.status <> 'none') THEN 'qualifiziert'
+            		ELSE 'none'
+            	END as status2
+            FROM R r1
+
+
+
+[{"tisch":"A","spieler":"2","turnierpunkte":45,"partiepunkte":480,"zeitpunkt":1785791179701},{"tisch":"A","spieler":"3","turnierpunkte":30,"partiepunkte":270,"zeitpunkt":1785791179701},{"tisch":"A","spieler":"5","turnierpunkte":20,"partiepunkte":-160,"zeitpunkt":1785791179701}]
+
+
+# Tabelle mit allen Tiebreakern
+
+WITH R as(
+            SELECT RANK() OVER (ORDER BY sum(tournament_points) DESC, 
+            							sum(mr.total_play_points) DESC,
+                                        sum(mr.round_wins) DESC,
+										max(mr.total_play_points) DESC,
+										(select count(*) from match_results mr2 where p.id=mr2.player_id and mr2.total_play_points=max(mr.total_play_points)) DESC,
+										(select max(mr2.total_play_points) from match_results mr2 where p.id=mr2.player_id and mr2.total_play_points<max(mr.total_play_points)) DESC
+                                        )
+            							AS standing, 
+            		username, 
+            		sum(tournament_points) TP, 
+            		sum(mr.total_play_points) PP,
+            		status,
+					sum(mr.round_wins) as rounds_won,
+					max(mr.total_play_points) as best,
+					(select count(*) from match_results mr2 where p.id=mr2.player_id and mr2.total_play_points=max(mr.total_play_points)) as anzahl,
+					(select max(mr2.total_play_points) from match_results mr2 where p.id=mr2.player_id and mr2.total_play_points<max(mr.total_play_points)) as secondbest
+            FROM match_results mr
+            JOIN matches m ON mr.match_id = m.id
+            JOIN players p ON mr.player_id = p.id
+            GROUP BY p.id, username)
+
+            SELECT r1.standing, r1.username, r1.tp, r1.pp,rounds_won, best, anzahl, secondbest, 
+            	CASE 
+            		WHEN status = 'hat_bereits_qualifikation' THEN 'hat_bereits_qualifikation' 
+            		WHEN status = 'disqualifiziert' THEN 'disqualifiziert'
+            		WHEN r1.standing <= 4 + (select count(*) from R r2 where r2.standing < r1.standing and r2.status <> 'none') THEN 'qualifiziert'
+            		ELSE 'none'
+            	END as status2
+            FROM R r1
+            ;
+
+
+
+# Wo gleichstand gewesen?
+select * from match_results m1
+WHERE EXISTS (SELECT 1 
+			 from match_results m2 
+			 WHERE m1.match_id=m2.match_id
+			 AND m1.id<>m2.id
+			 AND m1.total_play_points = m2.total_play_points
+			 AND m1.round_wins = m2.round_wins) 
+
+# Wo gleichstand in Turnier?
+WITH T AS (WITH R as(
+            SELECT RANK() OVER (ORDER BY sum(tournament_points) DESC, 
+            							sum(mr.total_play_points) DESC,
+                                        sum(mr.round_wins) DESC,
+										max(mr.total_play_points) DESC,
+										(select count(*) from match_results mr2 where p.id=mr2.player_id and mr2.total_play_points=max(mr.total_play_points)) DESC,
+										(select max(mr2.total_play_points) from match_results mr2 where p.id=mr2.player_id and mr2.total_play_points<max(mr.total_play_points)) DESC
+                                        )
+            							AS standing, 
+            		username, 
+            		sum(tournament_points) TP, 
+            		sum(mr.total_play_points) PP,
+            		status,
+					sum(mr.round_wins) as rounds_won,
+					max(mr.total_play_points) as best,
+					(select count(*) from match_results mr2 where p.id=mr2.player_id and mr2.total_play_points=max(mr.total_play_points)) as anzahl,
+					(select max(mr2.total_play_points) from match_results mr2 where p.id=mr2.player_id and mr2.total_play_points<max(mr.total_play_points)) as secondbest
+            FROM match_results mr
+            JOIN matches m ON mr.match_id = m.id
+            JOIN players p ON mr.player_id = p.id
+            GROUP BY p.id, username)
+
+            SELECT r1.standing, r1.username, r1.tp, r1.pp,rounds_won, best, anzahl, secondbest, 
+            	CASE 
+            		WHEN status = 'hat_bereits_qualifikation' THEN 'hat_bereits_qualifikation' 
+            		WHEN status = 'disqualifiziert' THEN 'disqualifiziert'
+            		WHEN r1.standing <= 12 + (select count(*) from R r2 where r2.standing < r1.standing and r2.status <> 'none') THEN 'qualifiziert'
+            		ELSE 'none'
+            	END as status2
+            FROM R r1
+            )
+			select * from T m1
+WHERE EXISTS (SELECT 1 
+			 from T m2 
+			 WHERE m1.username<>m2.username
+			 AND m1.tp = m2.tp
+			 AND m1.pp = m2.pp
+			 AND m1.rounds_won = m2.rounds_won
+			 AND m1.best = m2.best
+			 AND m1.anzahl = m2.anzahl
+			 AND m1.secondbest = m2.secondbest)
