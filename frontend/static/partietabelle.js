@@ -186,8 +186,8 @@ function partie_auswerten(partie){
         tisch: partie.tisch,
         vorrunde: partie.vorrunde,
         spieler: partie.spieler[i],
-        platzierung: ermittle_platzierungen(partie)[i],
-        turnierpunkte: ermittle_platzierungen(partie).map(turnierpunkte)[i],
+        platzierung: partie.platzierungen[i],
+        turnierpunkte: partie.platzierungen.map(turnierpunkte)[i],
         partiepunkte: partie.punktetabelle[partie.letzte_runde][i],
         plusrunden: anzahl_richtiger_schaetzungen[i],
         zeitpunkt: + new Date()
@@ -683,7 +683,14 @@ function submitTiebreaker5(indices,umkaempfte_platzierung){
                 partie.platzierungen[indices[i]] =  relative_ranks[i] - 1 + umkaempfte_platzierung
             }
 
+            tiebreaker_spieler = []
+            for(const i in indices){
+                tiebreaker_spieler[i] = partie.spieler[indices[i]]
+            }
+
             console.log(partie.platzierungen)
+
+            tiebreaker5_im_server_eintragen(tiebreaker_spieler,relative_ranks)
 
             //Endstand updaten
             baueneu_endstandContainer()
@@ -694,6 +701,34 @@ function submitTiebreaker5(indices,umkaempfte_platzierung){
 
         }
     }
+
+function tiebreaker5_im_server_eintragen(spieler,relative_ranks){
+
+    let tiebreaker_ergebnisse = []
+    for(let i = 0; i<spieler.length; i++)
+    tiebreaker_ergebnisse[i] = { 
+        tisch: partie.tisch,
+        vorrunde: partie.vorrunde,
+        spieler: spieler[i],
+        platzierung: relative_ranks[i],
+        zeitpunkt: + new Date()
+    }
+
+    fetch('/post_tiebreaker_result', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(tiebreaker_ergebnisse),
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+}
 
 /** Platzhalter für noch nicht geschriebene Tiebreaker
 * @param {object}   partie      Die gespielte Partie
@@ -1176,7 +1211,7 @@ function ersetzeImputContainerMitEndstandContainer(){
     
 }
 
-function partie_im_server_eintragen(tischname,vorrunde){
+function partie_im_server_eintragen(tischname,vorrunde = null){
     //POST the spielergebnisse to the backend
     spielstart = {'table_name': tischname, 'vorrunde': vorrunde}
     
@@ -1572,7 +1607,7 @@ function bauePartieerstellenContainer(){
                 
                 // Yay, Partie kann beginnen
                 if(RegelnWaehlen.value == 'Turnier')
-                    partie_im_server_eintragen(TischWaehlen.value,5)
+                    partie_im_server_eintragen(TischWaehlen.value)
                 
                 partie = new_partie(RegelnWaehlen.value,
                                     1,
@@ -1580,6 +1615,8 @@ function bauePartieerstellenContainer(){
                                     spieler,
                                     GeberWaehlen.value)
                 
+
+                get_vorrunde()
 
                 baueInputUndResultsContainer()
 
@@ -1598,15 +1635,13 @@ function bauePartieerstellenContainer(){
 }
 
 function baueTischAuswahl(){
-    fetch('/get_table_names', {
+    fetch('/get_available_table_names', {
                 method: 'GET'
             })
             .then(response => response.text())
             .then(data => {
                 console.log('Success fetching tables:', data);
                 console.log(JSON.parse(data));
-                console.log('hihi');
-                console.log(['A','B','C','D','E']);
                 auswaehlbare_tische = JSON.parse(data);
                 let TischWaehlen = document.getElementById('TischWaehlen')
                 for(const tisch of auswaehlbare_tische){
@@ -1683,6 +1718,8 @@ function LadeNeuePartieErstellen(){
     bauePartieerstellenContainer()
 }
 
+
+
 function get_tische(){
     console.log('hmm')
     fetch('/get_table_names', {
@@ -1700,6 +1737,25 @@ function get_tische(){
             .catch((error) => {
                 console.error('Error:', error);
                 return ['A','B','C','D','E'];
+            });
+}
+
+function get_vorrunde(){
+    console.log('hmm')
+    fetch('/get_active_vorrunde', {
+                method: 'GET'
+            })
+            .then(response => response.text())
+            .then(data => {
+                console.log('Success fetching active_vorrunde:', data);
+                console.log(JSON.parse(data));
+                partie.vorrunde = JSON.parse(data);
+                return JSON.parse(data)
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                partie.vorrunde = 0
+                return 0;
             });
 }
 

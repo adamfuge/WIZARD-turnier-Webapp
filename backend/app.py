@@ -104,6 +104,14 @@ def tournament_data():
     except Exception as e:
         return f"Error: {str(e)}\n", 400
 
+@app.route('/get_active_vorrunde', methods=['GET'])
+def get_active_vorrunde():
+    result = execute_query('''SELECT id, vorrunde_name 
+                                FROM vorrunden 
+                                WHERE id=(SELECT active_vorrunde_id 
+                                            FROM active_vorrunde);''')
+    
+    return {'active_vorrunde_id': result[0][0], 'vorrunde_name': result[0][1]}
 
 @app.route('/create_player', methods=['POST'])
 def create_player():
@@ -132,6 +140,7 @@ def get_players():
             'sum_play_points': player[3]
         })
     return {'players': players_list}
+
 
 @app.route('/get_player/<int:player_id>', methods=['GET'])
 def get_player(player_id):
@@ -205,6 +214,38 @@ def post_round_result():
     except Exception as e:
         return f"Error serverside: {str(e)}\n", 400
 
+
+@app.route('/post_tiebreaker_result', methods=['POST'])
+def post_tiebreaker_result():
+    try:
+        data = request.get_json()
+        # the match result is an array of objects, each object has the following structure:
+        # {"table_name": "A", "player_id": 1, "play_points": 5, "tournament_points": 10}
+            
+
+        for result in data:
+            table_name = result.get('tisch')
+            vorrunde_id = result.get('vorrunde')
+            player_id = result.get('spieler')
+            final_standing = result.get('platzierung')
+
+            execute_query('''
+                INSERT INTO tiebreaker_results (match_id, player_id, final_standing)
+                VALUES ((SELECT m.id
+                			FROM matches m
+                			JOIN tables t ON t.id = m.table_id 
+                			JOIN vorrunden v ON v.id = m.vorrunde_id 
+                			WHERE table_name = %s
+                			AND vorrunde_id = %s),
+                		%s,
+                		%s)
+                RETURNING id
+            ''', (table_name, vorrunde_id, player_id, final_standing))
+
+        return "Tiebreaker results inserted!\n"
+    except Exception as e:
+        return f"Error: {str(e)}\n", 400
+
 @app.route('/post_match_start', methods=['POST'])
 def post_match_start():
     try:
@@ -215,6 +256,12 @@ def post_match_start():
         table_name = data.get('table_name')
         vorrunde_id = data.get('vorrunde')
 
+        if not vorrunde_id:
+            vorrunde_id = execute_query('''SELECT id, vorrunde_name 
+                                            FROM vorrunden 
+                                            WHERE id=(SELECT active_vorrunde_id 
+                                                        FROM active_vorrunde);''')[0][0]
+        
         execute_query('''
             INSERT INTO matches (table_id, vorrunde_id)
             VALUES ((SELECT t.id FROM tables t WHERE table_name = %s),
@@ -304,6 +351,20 @@ def get_table_names():
         tables_list.append(table[0])
     return tables_list
 
+@app.route('/get_available_table_names', methods=['GET'])
+def get_available_table_names():
+    result = execute_query('''SELECT table_name 
+                                FROM tables t
+                                WHERE NOT EXISTS (SELECT 1 
+                                                  FROM matches m, active_vorrunde
+                                                  WHERE vorrunde_id=active_vorrunde_id
+                                                  AND t.id = m.table_id)
+								ORDER BY table_name ASC;''')
+    
+    tables_list = []
+    for table in result:
+        tables_list.append(table[0])
+    return tables_list
 
 @app.route('/init_db', methods=['GET'])
 def init_db():
@@ -318,8 +379,15 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS vorrunden (
             id SERIAL PRIMARY KEY,
+            vorrunde_name TEXT UNIQUE,
             start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            end_time TIMESTAMP
+            end_time TIMESTAMP,
+            CHECK (start_time <= end_time)
+        );
+
+        CREATE TABLE active_vorrunde (
+            enforce_singleton CHAR(1) DEFAULT 'X' PRIMARY KEY CHECK (enforce_singleton = 'X'),
+            active_vorrunde_id INT NOT NULL REFERENCES vorrunden(id) ON DELETE RESTRICT
         );
 
         CREATE TABLE IF NOT EXISTS matches (
@@ -356,6 +424,10 @@ def init_db():
             round_id INTEGER NOT NULL REFERENCES rounds(id) ON DELETE CASCADE,
             player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
             play_points INTEGER DEFAULT 0,
+            ansage INTEGER,
+            stiche INTEGER,
+            dealer_player_id INTEGER REFERENCES players(id) ON DELETE CASCADE,
+            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(round_id, player_id)
         );
 
@@ -367,6 +439,7 @@ def init_db():
             round_wins INTEGER DEFAULT 0,
             final_standing INTEGER,
             tournament_points INTEGER DEFAULT 0,
+            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(match_id, player_id)
         );
                 
@@ -375,18 +448,44 @@ def init_db():
             match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
             player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
             final_standing INTEGER NOT NULL,
+            ansage INTEGER,
+            stiche INTEGER,
+            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(match_id, player_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS penalties (
+            id SERIAL PRIMARY KEY,
+            round_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+            player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
+            amount INTEGER NOT NULL,
+            submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
         CREATE TABLE IF NOT EXISTS tournamentpoints_from_rank (
             rank SERIAL PRIMARY KEY,
             tp INTEGER NOT NULL
         );
-        INSERT INTO tournamentpoints_from_rank 
-        SELECT * 
-        FROM (VALUES (1,45),(2,30),(3,20),(4,10),(5,5))
-        WHERE NOT EXISTS ( SELECT 1 FROM tournamentpoints_from_rank);
+    ''')
+    cur.execute('''
+        INSERT INTO vorrunden (id, vorrunde_name, start_time)
+            SELECT v.id, v.vorrunde_name, to_timestamp(v.start_time, 'D.M.YYYY HH24:MI')
+            FROM (VALUES (0, 'Pause', '1.1.2000 00:00')) as v(id, vorrunde_name, start_time)
+            WHERE NOT EXISTS (SELECT 1 FROM vorrunden WHERE id=0)
+        RETURNING id;
 
+        INSERT INTO active_vorrunde (active_vorrunde_id)
+            SELECT v.id 
+            FROM vorrunden v
+            WHERE vorrunde_name = 'Pause'
+            AND NOT EXISTS (SELECT 1 FROM active_vorrunde)
+        RETURNING active_vorrunde_id;
+
+        INSERT INTO tournamentpoints_from_rank 
+            SELECT * 
+            FROM (VALUES (1,45),(2,30),(3,20),(4,10),(5,5))
+            WHERE NOT EXISTS ( SELECT 1 FROM tournamentpoints_from_rank)
+        RETURNING rank;
     ''')
     conn.commit()
     cur.close()
@@ -467,7 +566,7 @@ def populate_db_last_year():
             		(2, '1.1.2003 14:00'), 
             		(3, '1.1.2003 16:00'), 
             		(5, '1.1.2000 16:00')) as v(id, start_time)
-            WHERE NOT EXISTS (SELECT 1 FROM vorrunden)
+            WHERE NOT EXISTS (SELECT 1 FROM vorrunden WHERE id <> 0)
             RETURNING id;
         """)
         
@@ -713,7 +812,9 @@ def drop_db():
     DROP TABLE IF EXISTS tables CASCADE;
     DROP TABLE IF EXISTS players CASCADE;
     DROP TABLE IF EXISTS vorrunden CASCADE;
+    DROP TABLE IF EXISTS active_vorrunde CASCADE;
     DROP TABLE IF EXISTS tiebreaker_results CASCADE;
+    DROP TABLE IF EXISTS penalties CASCADE;
     DROP TABLE IF EXISTS tournamentpoints_from_rank CASCADE;''')
     conn.commit()
     cur.close()
