@@ -3,8 +3,38 @@ let auswaehlbare_tische
 let partie 
 const rundenzahlen_ohne_ende = [,,,[2,4,6,8,10,12,14,16,18,20],[1,3,5,7,9,11,12,13,14,15], [2,4,5,6,7,8,9,10,11,12]
         ]
+const pathSegments = window.location.pathname.split('/');
+let match_id = pathSegments[pathSegments.length - 1]; 
 
+console.log("Loading data for table:", match_id);
 
+if(match_id == 'match_view'){
+    match_id = null
+    LadeNeuePartieErstellen()
+}
+else{
+    fetch(`/get_match_info/${match_id}`, {
+            method: 'GET'
+        })
+        .then(response => response.text())
+        .then(data => {
+                console.log('Success:', data);
+                
+
+                partie = new_partie('Turnier',5,'D',['4','5','6','7'],'6')
+
+                console.log(partie)
+
+                partie = JSON.parse(data)
+
+                console.log(partie)
+
+                startePartie()
+        })
+        .catch((error) => {
+                console.error('Error:', error);
+        });
+}
 
 function new_partie(regeln,vorrunde,tisch,spieler,erster_geber){
     let partie = {
@@ -76,7 +106,7 @@ function naechster_geber(partie){
     if(partie.letzte_runde == "ende"){
         throw new Error("Spiel ist zuende")
     }
-    
+
     //Finde den Spielerindex des letzten Geber
     let index_letzter_geber = partie.spieler.findIndex(spieler => spieler.trim() == partie.geber[partie.letzte_runde].trim()) 
     
@@ -884,6 +914,7 @@ function baue_neu_rundeninfo(partie){
 function validateNumber(self,id=""){
 
     console.log(`validating, id given is ${id}`)
+    console.log('partie.aktuelle_runde in validateNumber', partie.aktuelle_runde)
     checkAndCorrectValidInput(self)
 
     //überprüfe ob alle Felder gefüllt sind und färbe den 'Runde eintragen Knopf'
@@ -1022,8 +1053,13 @@ function baue_gesamtpunktzahlen(){
 
 function baue_inputs(){
     let reihe = document.getElementById('schaetzunginputFelder')
+
+    
+    console.log('partie.aktuelle_runde in baue_inputs', partie.aktuelle_runde)
+
     reihe.innerHTML = ''
     for(const i in partie.spieler){
+        
         reihe.innerHTML += `
                     <div class="col-3 inputField"> 
                       <input type="text" class="form-control schaetzunginput rundeninput inputBold" placeholder="Ansage" id="schaetzung${i}" inputmode="numeric" pattern="[0-9]*" oninput="validateNumber(this);" style="text-align: center;"> 
@@ -1068,6 +1104,8 @@ function activateSubmitButtonIfInputsValid(id=""){
 }
 
 function checkInputsForTurnierregeln(id=""){
+    
+    console.log('partie.aktuelle_runde in checkInputsForTurnierregeln', partie.aktuelle_runde)
     let inputs_valide = true
 
     if(!alleFelderGefuellt(id)){throw new Error('Something went wrong')}
@@ -1211,9 +1249,12 @@ function ersetzeImputContainerMitEndstandContainer(){
     
 }
 
-function partie_im_server_eintragen(tischname,vorrunde = null){
+function partie_im_server_eintragen(tischname,spieler,geber,vorrunde = null){
     //POST the spielergebnisse to the backend
-    spielstart = {'table_name': tischname, 'vorrunde': vorrunde}
+    spielstart = {  'table_name': tischname, 
+                    'vorrunde': vorrunde, 
+                    'spieler': spieler,
+                    'erster_geber': geber}
     
     console.log(spielstart)
 
@@ -1226,7 +1267,9 @@ function partie_im_server_eintragen(tischname,vorrunde = null){
     })
     .then(response => response.text())
     .then(data => {
-        console.log('Success:', data);
+        console.log('Success:', JSON.parse(data));
+        console.log('Success:', JSON.parse(data).match_id);
+        window.location.href = `/match_view/${JSON.parse(data).match_id}`;
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -1607,31 +1650,28 @@ function bauePartieerstellenContainer(){
                 
                 // Yay, Partie kann beginnen
                 if(RegelnWaehlen.value == 'Turnier')
-                    partie_im_server_eintragen(TischWaehlen.value)
-                
-                partie = new_partie(RegelnWaehlen.value,
-                                    1,
-                                    TischWaehlen.value,
-                                    spieler,
-                                    GeberWaehlen.value)
-                
-
-                get_vorrunde()
-
-                baueInputUndResultsContainer()
-
-                bauePunktetabelle(partie)
-
-
-                baue_inputcontainer()
-
-                baue_neu_rundeninfo(partie)
-
-                baueNavContainer()
-                
+                    partie_im_server_eintragen(TischWaehlen.value,spieler,GeberWaehlen.value)
+                else{
+                    startePartie(RegelnWaehlen.value,
+                                        1,
+                                        TischWaehlen.value,
+                                        spieler,
+                                        GeberWaehlen.value)
+                    }
                 }
             }
     }
+}
+
+function startePartie(){
+    
+    
+    get_vorrunde()
+    baueInputUndResultsContainer()
+    bauePunktetabelle(partie)
+    baue_inputcontainer()
+    baue_neu_rundeninfo(partie)
+    baueNavContainer()
 }
 
 function baueTischAuswahl(){
@@ -1956,7 +1996,6 @@ function TestLadeBegonnenePartie(){
 
 
 
-TestLadeEndstand()
 // LadeNeuePartieErstellen()
 
 

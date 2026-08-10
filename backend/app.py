@@ -31,6 +31,10 @@ def serve_index():
 def serve_match_view():
     return send_from_directory('../frontend', 'partietabelle.html')
 
+@app.route("/match_view/<string:match_id>")
+def serve_match_view_table(match_id):
+    return send_from_directory('../frontend', 'partietabelle.html')
+
 @app.route("/tournament_view")
 def serve_tournament_view():
     return send_from_directory('../frontend', 'turniertabelle.html')
@@ -251,25 +255,56 @@ def post_match_start():
     try:
         data = request.get_json()
         # the match start is an object with the following structure:
-        # {"vorrunde": 1, "table_name": "A", "player_ids": [5,99,7]}
+        # {"vorrunde": 1, "table_name": "A", "spieler": [5,99,7]}
 
         table_name = data.get('table_name')
         vorrunde_id = data.get('vorrunde')
+        player_ids = data.get('spieler')
+        first_dealer = data.get('erster_geber')
+
 
         if not vorrunde_id:
             vorrunde_id = execute_query('''SELECT id, vorrunde_name 
                                             FROM vorrunden 
                                             WHERE id=(SELECT active_vorrunde_id 
                                                         FROM active_vorrunde);''')[0][0]
+            if not vorrunde_id:
+                vorrunde_id = 0
         
-        execute_query('''
+        match_id = execute_query('''
             INSERT INTO matches (table_id, vorrunde_id)
             VALUES ((SELECT t.id FROM tables t WHERE table_name = %s),
             		(SELECT v.id FROM vorrunden v WHERE v.id = %s))
             RETURNING id
-        ''', (table_name, vorrunde_id))
+            ''', (table_name, vorrunde_id))[0][0]
+        round_id = execute_query('''
+            INSERT INTO rounds (match_id, dealer_player_id, round_number)
+            VALUES (%s,
+                    %s,
+                    1)
+            RETURNING id
+            ''', (match_id, first_dealer))[0][0]
 
-        return "Match ready to start!\n"
+
+        seat = 0
+        for player_id in player_ids:
+            seat = seat + 1
+            execute_query('''
+                INSERT INTO match_results (match_id, player_id, seat)
+                VALUES (%s,
+                        %s,
+                        %s)
+                RETURNING id
+            ''', (match_id, player_id, seat))
+            execute_query('''
+                INSERT INTO round_results (round_id, player_id)
+                VALUES (%s,
+                        %s)
+                RETURNING id
+            ''', (round_id, player_id))[0][0]
+        
+
+        return {'match_id':match_id}
     except Exception as e:
         return f"Error serverside: {str(e)}\n", 400
 
@@ -290,6 +325,7 @@ def post_match_result():
             
 
         for result in data:
+            match_id = result.get('vorrunde')
             table_name = result.get('tisch')
             vorrunde_id = result.get('vorrunde')
             player_id = result.get('spieler')
@@ -298,27 +334,174 @@ def post_match_result():
             tournament_points = result.get('turnierpunkte')
             round_wins = result.get('plusrunden')
 
-            execute_query('''
-                
-                INSERT INTO match_results (match_id, player_id, total_play_points, final_standing, tournament_points, round_wins)
-                VALUES ((SELECT m.id
+            if not match_id:
+                match_id = execute_query('''SELECT m.id
                 			FROM matches m
                 			JOIN tables t ON t.id = m.table_id 
                 			JOIN vorrunden v ON v.id = m.vorrunde_id 
                 			WHERE table_name = %s
-                			AND vorrunde_id = %s),
-                		%s,
-                		%s,
-                		%s,
-                		%s,
-                		%s)
-                RETURNING id
-            ''', (table_name, vorrunde_id, player_id, play_points, final_standing, tournament_points, round_wins))
+                			AND vorrunde_id = %s''')[0][0]
+                if not match_id:
+                    execute_query('''
+                        INSERT INTO match_results (match_id, player_id, total_play_points, final_standing, tournament_points, round_wins)
+                        VALUES ((SELECT m.id
+                        			FROM matches m
+                        			JOIN tables t ON t.id = m.table_id 
+                        			JOIN vorrunden v ON v.id = m.vorrunde_id 
+                        			WHERE table_name = %s
+                        			AND vorrunde_id = %s),
+                        		%s,
+                        		%s,
+                        		%s,
+                        		%s,
+                        		%s)
+                        RETURNING id
+                    ''', (table_name, vorrunde_id, player_id, play_points, final_standing, tournament_points, round_wins))
+            else:
+                execute_query('''
+                        UPDATE match_results 
+                        SET total_play_points = %s,
+                            final_standing = %s,
+                            tournament_points = %s, 
+                            round_wins = %s
+                        WHERE match_id = %s
+                        AND player_id = %s
+                        RETURNING id
+                    ''', (play_points, final_standing, tournament_points, round_wins, match_id, player_id))
+
 
         return "Match results updated!\n"
     except Exception as e:
         return f"Error: {str(e)}\n", 400
+
+@app.route('/get_match_info/<int:match_id>', methods=['GET'])
+def get_match_info(match_id):
+    match_info = execute_query('''SELECT    vorrunde_id, 
+                                            table_name
+                                            FROM matches m, tables t
+                                            WHERE m.id = %s
+                                            AND m.finished = FALSE
+                                            AND t.id = m.table_id;
+                                ''', (match_id,))
+    if not match_info:
+        return "Match not found or already finished.\n", 404
+    vorrunde = match_info[0][0]
+    table_name = match_info[0][1]
+
+    players_info = execute_query('''SELECT   player_id, 
+                                            username,
+                                            final_standing
+                                            FROM match_results mr, players p
+                                            WHERE match_id = %s
+                                            AND mr.player_id = p.id
+                                            ORDER BY seat;
+                                ''', (match_id,))
+
+
+    player_ids = []
+    player_names = []
+    player_standings = []
+
+    for player_info in players_info:
+        player_ids.append(player_info[0])
+        player_names.append(player_info[1])
+        player_standings.append(player_info[2])
+        
+
+    last_round = execute_query('''SELECT    MAX(displayed_round_number)
+                                                FROM rounds r, round_numbers n
+                                                WHERE r.match_id = %s
+                                                AND r.finished = TRUE
+                                                AND r.round_number = n.round_number
+                                                AND n.player_amount = %s;
+                                ''', (match_id, len(player_ids)))[0][0]
+
+
+    next_round = execute_query('''SELECT    MIN(displayed_round_number)
+                                                FROM rounds r, round_numbers n
+                                                WHERE r.match_id = %s
+                                                AND r.finished = FALSE
+                                                AND r.round_number = n.round_number
+                                                AND n.player_amount = %s;
+                                ''', (match_id, len(player_ids)))[0][0]
+
+    rounds_info = execute_query('''SELECT   r.id, 
+                                            displayed_round_number,
+                                            dealer_player_id
+                                            FROM rounds r, round_numbers n
+                                            WHERE r.match_id = %s
+                                            AND r.round_number = n.round_number
+                                            AND n.player_amount = %s;
+                                ''', (match_id, len(player_ids)))
+
+
+
+    displayed_round_numbers = []
+    round_ids = []
+    dealer = [None] * (next_round+1)
+
+    for round_info in rounds_info:
+        round_ids.append(round_info[0])
+        displayed_round_numbers.append(round_info[1])
+        dealer[round_info[1]] = round_info[2]
+
     
+    if not last_round:
+        last_round = 0
+        return {'vorrunde': vorrunde,
+                    'tisch': table_name,
+                    'spieler': list(map(str,player_ids)),
+                    'punktetabelle': [[0]*len(player_ids)],
+                    'letzte_runde': last_round,
+                    'aktuelle_runde': next_round,
+                    'schaetzungen': [[0]*len(player_ids)],
+                    'stiche': [[0]*len(player_ids)],
+                    'geber': list(map(str,dealer)),
+                    'regeln': 'Turnier',
+                    'platzierungen': [[1]*len(player_ids)]
+                    }       
+
+    round_results_infos = execute_query('''SELECT   seat, 
+                                                    displayed_round_number,
+                                                    prediction,
+                                                    tricks,
+                                                    play_points
+                                                    FROM rounds r, round_results rr, match_results mr, round_numbers n
+                                                    WHERE r.match_id = %s
+                                                    AND mr.match_id = %s
+                                                    AND rr.round_id = r.id
+													AND r.round_number = n.round_number
+                                                    AND rr.player_id = mr.player_id
+                                                    AND n.player_amount = %s
+                                                    AND finished = TRUE;
+                                    ''', (match_id, match_id, len(player_ids)))
+
+
+    scores = [[None] * (len(player_ids)) for _ in range(last_round+1)]
+    predictions = [[None] *(len(player_ids)) for _ in range(last_round+1)]
+    tricks = [[None] * (len(player_ids)) for _ in range(last_round+1)]
+    
+    for res in round_results_infos:
+        current_seat = res[0] - 1
+        current_displayed_round_number = res[1]
+
+        predictions[current_displayed_round_number][current_seat] = res[2]
+        tricks[current_displayed_round_number][current_seat] = res[3]
+        scores[current_displayed_round_number][current_seat] = res[4]
+    
+    return {'vorrunde': vorrunde,
+            'tisch': table_name,
+            'spieler': list(map(str,player_ids)),
+            'punktetabelle': scores,
+            'letzte_runde': last_round,
+            'aktuelle_runde': next_round,
+            'schaetzungen': predictions,
+            'stiche': tricks,
+            'geber': list(map(str,dealer)),
+            'regeln': 'Turnier',
+            'platzierungen': player_standings
+            }           
+
 @app.route('/get_table/<string:table_name>', methods=['GET'])
 def get_table(table_name):
     result = execute_query('SELECT id, table_name FROM tables WHERE table_name = %s;', (table_name,))
@@ -411,11 +594,22 @@ def init_db():
             status TEXT DEFAULT 'none'
         );
 
+        CREATE TABLE IF NOT EXISTS round_numbers (
+            id SERIAL PRIMARY KEY,
+            round_number INTEGER NOT NULL,
+            player_amount INTEGER DEFAULT 0,
+            displayed_round_number INTEGER NOT NULL,
+            UNIQUE(round_number, player_amount)
+        );
+
         CREATE TABLE IF NOT EXISTS rounds (
             id SERIAL PRIMARY KEY,
             match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
             round_number INTEGER NOT NULL,
-            played_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            dealer_player_id INTEGER REFERENCES players(id) ON DELETE CASCADE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            finished_at TIMESTAMP,
+            finished BOOLEAN DEFAULT FALSE,
             UNIQUE (match_id, round_number)
         );
 
@@ -424,23 +618,24 @@ def init_db():
             round_id INTEGER NOT NULL REFERENCES rounds(id) ON DELETE CASCADE,
             player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
             play_points INTEGER DEFAULT 0,
-            ansage INTEGER,
-            stiche INTEGER,
-            dealer_player_id INTEGER REFERENCES players(id) ON DELETE CASCADE,
+            prediction INTEGER,
+            tricks INTEGER,
             submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(round_id, player_id)
         );
-
+        
         CREATE TABLE IF NOT EXISTS match_results (
             id SERIAL PRIMARY KEY,
             match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+            seat INTEGER CHECK(seat BETWEEN 1 AND 5),
             player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
             total_play_points INTEGER DEFAULT 0,
             round_wins INTEGER DEFAULT 0,
-            final_standing INTEGER,
+            final_standing INTEGER DEFAULT 1,
             tournament_points INTEGER DEFAULT 0,
             submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(match_id, player_id)
+            UNIQUE(match_id, player_id),
+            UNIQUE(match_id, seat)
         );
                 
         CREATE TABLE IF NOT EXISTS tiebreaker_results (
@@ -448,8 +643,8 @@ def init_db():
             match_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
             player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
             final_standing INTEGER NOT NULL,
-            ansage INTEGER,
-            stiche INTEGER,
+            prediction INTEGER,
+            tricks INTEGER,
             submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             UNIQUE(match_id, player_id)
         );
@@ -486,6 +681,41 @@ def init_db():
             FROM (VALUES (1,45),(2,30),(3,20),(4,10),(5,5))
             WHERE NOT EXISTS ( SELECT 1 FROM tournamentpoints_from_rank)
         RETURNING rank;
+
+        INSERT INTO round_numbers (player_amount,round_number,displayed_round_number)
+                    SELECT * 
+                    FROM (VALUES    (4,1,1),
+                                    (4,2,3),
+                                    (4,3,5),
+                                    (4,4,7),
+                                    (4,5,9),
+                                    (4,6,11),
+                                    (4,7,12),
+                                    (4,8,13),
+                                    (4,9,14),
+                                    (4,10,15),
+                                    (3,1,2),
+                                    (3,2,4),
+                                    (3,3,6),
+                                    (3,4,8),
+                                    (3,5,10),
+                                    (3,6,12),
+                                    (3,7,14),
+                                    (3,8,16),
+                                    (3,9,18),
+                                    (3,10,20),
+                                    (5,1,2),
+                                    (5,2,4),
+                                    (5,3,5),
+                                    (5,4,6),
+                                    (5,5,7),
+                                    (5,6,8),
+                                    (5,7,9),
+                                    (5,8,10),
+                                    (5,9,11),
+                                    (5,10,12))
+                    WHERE NOT EXISTS ( SELECT 1 FROM round_numbers)
+                RETURNING id;
     ''')
     conn.commit()
     cur.close()
@@ -589,8 +819,8 @@ def populate_db_last_year():
 
 
                 ]
-         
-#
+        seat_counter = 0
+
         for result in data:
             table_name = result.get('tisch')
             vorrunde_id = result.get('vorrunde')
@@ -599,7 +829,9 @@ def populate_db_last_year():
             final_standing = result.get('platzierung')
             tournament_points = result.get('turnierpunkte')
             round_wins = result.get('plusrunden')
-#
+
+            seat_counter = seat_counter % 4 + 1
+
             execute_query('''
                 INSERT INTO players (id, username)
                 SELECT * 
@@ -607,8 +839,8 @@ def populate_db_last_year():
                 WHERE NOT EXISTS (SELECT 1 FROM players WHERE id = %s)
                 RETURNING id;
             ''', (player_id, player_id, player_id))
-#
-            execute_query('''
+
+            match_id = execute_query('''
                 INSERT INTO matches (table_id, vorrunde_id)
                 SELECT * 
                 FROM (VALUES ((SELECT t.id FROM tables t WHERE table_name = %s),
@@ -620,22 +852,50 @@ def populate_db_last_year():
                 RETURNING id;
             ''', (table_name, vorrunde_id, table_name, vorrunde_id))
 
+            if not match_id:
+                match_id = execute_query('''
+                                SELECT id
+                                                    FROM matches 
+                                                    WHERE table_id = (SELECT t.id FROM tables t WHERE table_name = %s)
+                                                    AND vorrunde_id = (SELECT v.id FROM vorrunden v WHERE v.id = %s)
+                            ''', (table_name, vorrunde_id))
             
             execute_query('''
-                INSERT INTO match_results (match_id, player_id, total_play_points, final_standing, tournament_points, round_wins)
-                VALUES ((SELECT m.id
-                			FROM matches m
-                			JOIN tables t ON t.id = m.table_id 
-                			JOIN vorrunden v ON v.id = m.vorrunde_id 
-                			WHERE table_name = %s
-                			AND vorrunde_id = %s),
+                INSERT INTO match_results (match_id, player_id, total_play_points, final_standing, tournament_points, round_wins, seat)
+                VALUES (%s,
+                		%s,
                 		%s,
                 		%s,
                 		%s,
                 		%s,
                 		%s)
                 RETURNING id
-            ''', (table_name, vorrunde_id, player_id, play_points, final_standing, tournament_points, round_wins))
+            ''', (match_id[0][0], player_id, play_points, final_standing, tournament_points, round_wins, seat_counter))
+
+            round_id = execute_query('''
+                INSERT INTO rounds (match_id, dealer_player_id, round_number, finished)
+                SELECT * 
+                FROM (VALUES (%s,%s,1,TRUE),(%s,%s,2,TRUE),(%s,%s,3,FALSE))
+                WHERE NOT EXISTS (SELECT 1 
+                                    FROM rounds 
+                                    WHERE match_id = %s)
+                RETURNING id;
+            ''', (match_id[0][0], player_id, match_id[0][0], player_id, match_id[0][0], player_id, match_id[0][0]))
+
+            if not round_id:
+                round_id = execute_query('''SELECT id
+                                            FROM rounds 
+                                            WHERE match_id = %s
+                                            AND match_id = %s
+                                        ''', (match_id[0][0],match_id[0][0]))
+            
+            execute_query('''
+                INSERT INTO round_results (round_id, player_id, play_points)
+                VALUES (%s, %s, 0),
+                       (%s, %s, %s),
+                       (%s, %s, 0)
+                RETURNING id
+            ''', (round_id[0][0], player_id, round_id[1][0], player_id, play_points, round_id[2][0], player_id))
 
         return "Match results updated!\n"
     except Exception as e:
@@ -815,7 +1075,8 @@ def drop_db():
     DROP TABLE IF EXISTS active_vorrunde CASCADE;
     DROP TABLE IF EXISTS tiebreaker_results CASCADE;
     DROP TABLE IF EXISTS penalties CASCADE;
-    DROP TABLE IF EXISTS tournamentpoints_from_rank CASCADE;''')
+    DROP TABLE IF EXISTS tournamentpoints_from_rank CASCADE;
+    DROP TABLE IF EXISTS round_numbers CASCADE;''')
     conn.commit()
     cur.close()
     conn.close()
