@@ -308,6 +308,84 @@ def post_match_start():
     except Exception as e:
         return f"Error serverside: {str(e)}\n", 400
 
+@app.route('/post_match_update', methods=['POST'])
+def post_match_update():
+    try:
+        data = request.get_json()
+        # the match result is a JSON object containing like:
+        # {"tisch": "A", "spieler": [1,2,3] ...
+        last_round = data.get('letzte_runde')
+        next_round = data.get('aktuelle_runde')
+        
+        last_round_id = execute_query('''
+            UPDATE rounds 
+            SET finished_at = CURRENT_TIMESTAMP, finished = true
+            WHERE match_id = (  SELECT id 
+                                FROM matches 
+                                WHERE table_id = (SELECT t.id FROM tables t WHERE table_name = %s)
+                                AND vorrunde_id = (SELECT v.id FROM vorrunden v WHERE v.id = %s))
+            AND round_number = (SELECT round_number 
+                                FROM round_numbers 
+                                WHERE player_amount = %s
+                                AND displayed_round_number = %s)
+            RETURNING id;''', (data.get('tisch'),
+                               data.get('vorrunde'),
+                               len(data.get('spieler')), 
+                               data.get('letzte_runde')))[0][0]
+
+        if next_round:
+            next_round_id = execute_query('''
+                        INSERT INTO rounds (match_id, dealer_player_id, round_number)
+                                    VALUES ((  SELECT id 
+                                                FROM matches 
+                                                WHERE table_id = (SELECT t.id FROM tables t WHERE table_name = %s)
+                                                AND vorrunde_id = (SELECT v.id FROM vorrunden v WHERE v.id = %s)),
+                                            %s,
+                                            (SELECT round_number 
+                                            FROM round_numbers 
+                                            WHERE player_amount = %s
+                                            AND displayed_round_number = %s))
+                        RETURNING id;''', (data.get('tisch'),
+                                           data.get('vorrunde'),
+                                           data.get('geber')[next_round],
+                                           len(data.get('spieler')), 
+                                           next_round))[0][0]
+        
+        for i in range(len(data.get('spieler'))):
+            player_id = data.get('spieler')[i]
+            play_points = data.get('punktetabelle')[last_round][i]
+            prediction = data.get('schaetzungen')[last_round][i]
+            tricks = data.get('stiche')[last_round][i]
+            
+            execute_query('''
+                UPDATE round_results
+                SET play_points = %s,
+					prediction = %s,
+					tricks = %s,
+					submitted_at = CURRENT_TIMESTAMP
+                WHERE round_id = %s
+                AND player_id = %s
+                RETURNING id;''', (play_points,
+                                   prediction,
+                                   tricks,
+                                   last_round_id,
+                                   player_id
+                ))
+
+            if next_round:
+                execute_query('''      
+                    INSERT INTO round_results (round_id, player_id)
+                    VALUES (%s,
+                            %s)
+                    RETURNING id''', ( next_round_id,
+                                       player_id
+                                ))
+        
+
+        return "Rounds results updated!\n"
+    except Exception as e:
+        return f"Error: {str(e)}\n", 400
+
 @app.route('/post_match_result', methods=['POST'])
 def post_match_result():
     try:

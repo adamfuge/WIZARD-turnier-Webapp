@@ -1276,6 +1276,32 @@ function partie_im_server_eintragen(tischname,spieler,geber,vorrunde = null){
     });
 
 }
+
+function partie_im_server_aktuallisieren(partie){
+    //POST the spielergebnisse to the backend
+    
+    
+    console.log(partie)
+
+    fetch('/post_match_update', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(partie),
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Success:', data);
+        if(partie.aktuelle_runde != undefined){
+            window.location.href = `/match_view/${match_id}`;
+            }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+
+}
     
 function baueneu_endstandContainer(){
     bla = rankings_simple_by_lowest(partie.platzierungen)
@@ -1489,6 +1515,9 @@ function baueInputUndResultsContainer(){
             // Update Partie
             update_partie(partie,schaetzungen,stiche)
 
+            
+            if(partie.regeln == 'Turnier')
+                partie_im_server_aktuallisieren(partie)
 
             // Baue die Punktetabelle neu
             neubauePunktetabelle(partie)
@@ -1496,19 +1525,14 @@ function baueInputUndResultsContainer(){
             // Baue die Rundeninfos neu
             baue_neu_rundeninfo(partie)
             
-
             // Setze Inputs und Submitbutton zurück
             reset_inputs()
             disableSubmitButton()
-
             console.log(partie.aktuelle_runde) 
-
-
             if(partie.aktuelle_runde == undefined){
                 ersetzeImputContainerMitEndstandContainer()
-
             }
-
+            
             
         }
     }
@@ -1665,8 +1689,8 @@ function bauePartieerstellenContainer(){
 
 function startePartie(){
     
-    
-    get_vorrunde()
+    if(partie.vorrunde == 0)
+        get_vorrunde()
     baueInputUndResultsContainer()
     bauePunktetabelle(partie)
     baue_inputcontainer()
