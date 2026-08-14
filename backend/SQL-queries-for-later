@@ -129,3 +129,42 @@ WHERE EXISTS (SELECT 1
 			 AND m1.best = m2.best
 			 AND m1.anzahl = m2.anzahl
 			 AND m1.secondbest = m2.secondbest)
+
+
+
+                cur.execute('''
+                    INSERT INTO match_results (match_id, 
+                                                player_id, 
+                                                total_play_points, 
+                                                final_standing, 
+                                                tournament_points, 
+                                                round_wins)
+                    VALUES ((SELECT m.id
+                    			FROM matches m
+                    			JOIN tables t ON t.id = m.table_id 
+                    			JOIN vorrunden v ON v.id = m.vorrunde_id 
+                    			WHERE table_name = %s
+                    			AND vorrunde_id = %s),
+                    		%s,
+                    		%s,
+                    		%s,
+                    		%s,
+                    		%s)
+                    RETURNING id
+                ''', (table_name, 
+                      vorrunde_id, 
+                      player_id, 
+                      play_points, 
+                      final_standing, 
+                      tournament_points, 
+                      round_wins))
+
+
+UPDATE round_results
+                SET play_points = CASE 
+					WHEN prediction=tricks 
+					THEN 20 + 10 * prediction 
+					ELSE -10 * ABS(prediction-tricks)
+				   END
+                WHERE prediction IS NOT NULL
+                AND tricks IS NOT NULL;

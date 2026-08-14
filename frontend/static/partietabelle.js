@@ -18,18 +18,37 @@ else{
         })
         .then(response => response.text())
         .then(data => {
-                console.log('Success:', data);
-                
-
-                partie = new_partie('Turnier',5,'D',['4','5','6','7'],'6')
-
-                console.log(partie)
 
                 partie = JSON.parse(data)
 
                 console.log(partie)
 
+
+
+
                 startePartie()
+
+                
+                console.log('hey')
+
+                if(partie.status == 'just_started')
+                    console.log('willkommen in der neuen partie')
+                    //Hier nutzereinweisung?
+                if(partie.status == 'tiebreaker_missing'){
+                    ersetzeImputContainerMitEndstandContainer()
+                    for(player_indeces of partie.ausstehende_tiebreaker){
+                        console.log('es fehlt noch ein tiebreaker')
+                        console.log(player_indeces)
+                        console.log(partie.platzierungen[player_indeces[0]])
+                        tiebreaker5(partie,player_indeces,partie.platzierungen[player_indeces[0]])
+                    }
+                }
+                if(partie.status == 'finished'){
+                    console.log('Die Partie ist bereits abgeschlossen')
+                    ersetzeImputContainerMitEndstandContainer()
+                }
+
+
         })
         .catch((error) => {
                 console.error('Error:', error);
@@ -180,6 +199,7 @@ function update_partie(partie,schaetzungen,stiche){
     update_punktetabelle(partie,schaetzungen,stiche)
     naechste_runde(partie)
     naechster_geber(partie)
+    partie.platzierungen = ermittle_platzierungen(partie)
 }
 
 /**
@@ -194,7 +214,7 @@ function partie_auswerten(partie){
         throw new Error("Spiel noch nicht zuende")
     }
 
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
     
     console.log("punktetabelle_einfach")
     console.log(punktetabelle_einfach)
@@ -300,7 +320,7 @@ function ermittle_platzierungen(partie){
     console.log("ermittle Platzierungen")
 
     // Entferne nicht gespielte Runden aus der Punkte tabelle
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
     
     // Ermittle Platzierungen nach Partiepunkte-Endstand
     let absolute_ranks = rankings(punktetabelle_einfach[punktetabelle_einfach.length-1])
@@ -341,7 +361,7 @@ function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_plat
     console.log('Tiebreaker1')
 
     // Entferne nicht gespielte Runden aus der Punkte tabelle
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
     
     // Zähle die Anzahl richtiger Schätzungen
     let anzahl_richtiger_schaetzungen = new Array(partie.spieler.length).fill(0)
@@ -396,7 +416,7 @@ function tiebreaker2(partie,indices=range(partie.spieler.length),umkaempfte_plat
     console.log('Tiebreaker2')
     
     // Entferne nicht gespielte Runden aus der Punkte tabelle
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
     
     // Finde das beste Einzelergebnis
     let besteEinzelergebnisse = new Array(partie.spieler.length).fill(-Infinity)
@@ -451,7 +471,7 @@ function tiebreaker3(partie,indices=range(partie.spieler.length),umkaempfte_plat
     console.log('Tiebreaker3')
     
     // Entferne nicht gespielte Runden aus der Punkte tabelle
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
     
 
 
@@ -512,7 +532,7 @@ function tiebreaker4(partie,indices=range(partie.spieler.length),umkaempfte_plat
     console.log('Tiebreaker4')
 
     // Entferne nicht gespielte Runden aus der Punkte tabelle
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element !== undefined;})
+    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
     
     // Finde, wie oft das beste Einzelergebnis erspielt wurde
     let zweitbesteEinzelergebnisse = new Array(partie.spieler.length).fill(0)
@@ -591,10 +611,18 @@ function tiebreaker5(partie,indices=range(partie.spieler.length),umkaempfte_plat
     </div>
 </div>`
 
+    console.log('indices')
+    console.log(indices)
+
     tiebreaker_spieler = []
     for(const i in indices){
         tiebreaker_spieler[i] = partie.spieler[indices[i]]
     }
+    
+    console.log('tiebreaker_spieler')
+    console.log(tiebreaker_spieler)
+
+    tiebreaker5_im_server_eintragen(partie.tisch,tiebreaker_spieler,partie.vorrunde)
 
     reihe = document.getElementById(`modalSpielernamen${umkaempfte_platzierung}`)
     reihe.innerHTML = ''
@@ -720,7 +748,7 @@ function submitTiebreaker5(indices,umkaempfte_platzierung){
 
             console.log(partie.platzierungen)
 
-            tiebreaker5_im_server_eintragen(tiebreaker_spieler,relative_ranks)
+            tiebreaker5_results_im_server_eintragen(tiebreaker_spieler,relative_ranks,schaetzungen,stiche)
 
             //Endstand updaten
             baueneu_endstandContainer()
@@ -732,7 +760,7 @@ function submitTiebreaker5(indices,umkaempfte_platzierung){
         }
     }
 
-function tiebreaker5_im_server_eintragen(spieler,relative_ranks){
+function tiebreaker5_results_im_server_eintragen(spieler,relative_ranks,schaetzungen,stiche){
 
     let tiebreaker_ergebnisse = []
     for(let i = 0; i<spieler.length; i++)
@@ -741,7 +769,9 @@ function tiebreaker5_im_server_eintragen(spieler,relative_ranks){
         vorrunde: partie.vorrunde,
         spieler: spieler[i],
         platzierung: relative_ranks[i],
-        zeitpunkt: + new Date()
+        zeitpunkt: + new Date(),
+        stiche: stiche[i],
+        schaetzungen: schaetzungen[i]
     }
 
     fetch('/post_tiebreaker_result', {
@@ -937,10 +967,10 @@ function validateNumber2(self,id=""){
             }
 
 
-            if(stichsumme > partie.aktuelle_runde || (partie.aktuelle_runde == undefined && stichsumme > 5)){
+            if(stichsumme > (partie.aktuelle_runde ?? 5)){
                 self.value = self.value.substring(0, self.value.length - 1);
             }
-            else if(stichsumme == partie.aktuelle_runde || (partie.aktuelle_runde == undefined && stichsumme == 5) ){
+            else if(stichsumme == (partie.aktuelle_runde ?? 5 )){
                 for(const i of stiche_inputs){
                     if(i.value == ''){i.value=0}
                 }
@@ -957,15 +987,20 @@ function isPositiveInteger(string){
 
 function checkAndCorrectValidInput(self){
     //Versuche zuerst Eingabe zu fixen
-    if(!isPositiveInteger(self.value) || 
-        partie.aktuelle_runde < self.value || 
-        (partie.aktuelle_runde == undefined && 5 < self.value)){
+    console.log('partie.aktuelle_runde in checkAndCorrectValidInput')
+    console.log(partie.aktuelle_runde)
+    console.log(self.value)
+    console.log(partie.aktuelle_runde < self.value)
+
+    if(!isPositiveInteger(self.value) || (partie.aktuelle_runde ?? 5) < self.value){
+            
+        console.log('partie.aktuelle_runde in checkAndCorrectValidInput 2')
+        console.log(partie.aktuelle_runde)
+        console.log(self.value)
 
         self.value = self.value.substring(0, self.value.length - 1);
         //wenn nicht erfolgreich, lösche eingabe
-        if(!isPositiveInteger(self.value) || 
-            partie.aktuelle_runde < self.value ||
-            (partie.aktuelle_runde == undefined && 5 < self.value)){
+        if(!isPositiveInteger(self.value) || (partie.aktuelle_runde ?? 5) < self.value){
             self.value = ''
         }
         return false
@@ -1002,9 +1037,8 @@ function enableSubmitButton(id=""){
 
 function baue_neu_gesamtpunktzahl(){
     
-    platzierungen = ermittle_platzierungen(partie)
+    platzierungen = partie.platzierungen
 
-    partie.platzierungen = platzierungen
 
     console.log(platzierungen)
 
@@ -1113,7 +1147,7 @@ function checkInputsForTurnierregeln(id=""){
     
     inputs_valide = inputs_valide & checkStichzahlGleichRundenzahl(id)
     
-    if(partie.aktuelle_runde >= 2 || partie.aktuelle_runde == undefined){
+    if(2 <= (partie.aktuelle_runde ?? 5)){
         inputs_valide = inputs_valide & checkSchaetzungenUngleichRundenzahl(id)
     }
 
@@ -1134,12 +1168,7 @@ function checkStichzahlGleichRundenzahl(id=""){
     console.log(partie.aktuelle_runde == undefined)
     console.log(stichsumme)
 
-    if(partie.aktuelle_runde != undefined)
-        return stichsumme == partie.aktuelle_runde
-
-    // Wenn im tiebracker spielt man mit 5 Karten
-    if(partie.aktuelle_runde == undefined)
-        return stichsumme == 5
+    return stichsumme == (partie.aktuelle_runde ?? 5)
 }
 
 function checkSchaetzungenUngleichRundenzahl(id=""){
@@ -1150,12 +1179,7 @@ function checkSchaetzungenUngleichRundenzahl(id=""){
     }
     
 
-    if(partie.aktuelle_runde != undefined)
-        return schaetzungensumme != partie.aktuelle_runde 
-
-    // Wenn im tiebracker spielt man mit 5 Karten
-    if(partie.aktuelle_runde == undefined)
-        return schaetzungensumme != 5
+    return schaetzungensumme != (partie.aktuelle_runde ?? 5)
 }
 
 
@@ -1277,6 +1301,8 @@ function partie_im_server_eintragen(tischname,spieler,geber,vorrunde = null){
 
 }
 
+
+
 function partie_im_server_aktuallisieren(partie){
     //POST the spielergebnisse to the backend
     
@@ -1296,6 +1322,32 @@ function partie_im_server_aktuallisieren(partie){
         if(partie.aktuelle_runde != undefined){
             window.location.href = `/match_view/${match_id}`;
             }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+
+}
+
+function tiebreaker5_im_server_eintragen(tischname,spieler,vorrunde = null){
+    //POST the tiebreaker start to the backend
+    tiebreakerstart = {  'table_name': tischname, 
+                    'vorrunde': vorrunde, 
+                    'spieler': spieler}
+    
+    console.log(tiebreakerstart)
+
+    fetch('/post_tiebreaker_start', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tiebreakerstart),
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log('Success:', JSON.parse(data));
+        console.log('Success:', JSON.parse(data).match_id);
     })
     .catch((error) => {
         console.error('Error:', error);
@@ -1529,7 +1581,7 @@ function baueInputUndResultsContainer(){
             reset_inputs()
             disableSubmitButton()
             console.log(partie.aktuelle_runde) 
-            if(partie.aktuelle_runde == undefined){
+            if(partie.aktuelle_runde == null){
                 ersetzeImputContainerMitEndstandContainer()
             }
             
@@ -1805,7 +1857,6 @@ function get_tische(){
 }
 
 function get_vorrunde(){
-    console.log('hmm')
     fetch('/get_active_vorrunde', {
                 method: 'GET'
             })
@@ -1813,7 +1864,7 @@ function get_vorrunde(){
             .then(data => {
                 console.log('Success fetching active_vorrunde:', data);
                 console.log(JSON.parse(data));
-                partie.vorrunde = JSON.parse(data);
+                partie.vorrunde = JSON.parse(data).active_vorrunde_id;
                 return JSON.parse(data)
             })
             .catch((error) => {
