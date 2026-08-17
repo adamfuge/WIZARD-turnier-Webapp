@@ -61,6 +61,7 @@ function new_partie(regeln,vorrunde,tisch,spieler,erster_geber){
     tisch: tisch,
     spieler: spieler,
     punktetabelle: [new Array(spieler.length).fill(0)],
+    punktetabelle_kumulativ: [new Array(spieler.length).fill(0)],
     letzte_runde: 0,
     aktuelle_runde: 1,
     schaetzungen: [new Array(spieler.length).fill(0)],
@@ -159,15 +160,15 @@ function update_punktetabelle(partie,schaetzungen,stiche){
     partie.stiche[partie.aktuelle_runde] = stiche
 
 
-    partie.punktetabelle[partie.aktuelle_runde] = []
+    partie.punktetabelle_kumulativ[partie.aktuelle_runde] = []
     for(let i=0; i < partie.spieler.length; i++){
         if(schaetzungen[i] == stiche[i]){ 
             // Spieler hat richtig geschätzt: 20 Punkte plu 10 Punkte pro Stich
-            partie.punktetabelle[partie.aktuelle_runde][i] = partie.punktetabelle[partie.letzte_runde][i] + 20 + 10*stiche[i] 
+            partie.punktetabelle_kumulativ[partie.aktuelle_runde][i] = partie.punktetabelle_kumulativ[partie.letzte_runde][i] + 20 + 10*stiche[i] 
         }
         else{ 
             // Spieler hat falsch geschätzt: 10 Punkte abzug pro falsch geschätztem stich
-            partie.punktetabelle[partie.aktuelle_runde][i] = partie.punktetabelle[partie.letzte_runde][i] + -10*Math.abs(stiche[i]-schaetzungen[i]) }
+            partie.punktetabelle_kumulativ[partie.aktuelle_runde][i] = partie.punktetabelle_kumulativ[partie.letzte_runde][i] + -10*Math.abs(stiche[i]-schaetzungen[i]) }
     }
 }
 
@@ -214,7 +215,7 @@ function partie_auswerten(partie){
         throw new Error("Spiel noch nicht zuende")
     }
 
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
+    let punktetabelle_einfach = partie.punktetabelle_kumulativ.filter(function( element ) {return element != null;})
     
     console.log("punktetabelle_einfach")
     console.log(punktetabelle_einfach)
@@ -238,7 +239,7 @@ function partie_auswerten(partie){
         spieler: partie.spieler[i],
         platzierung: partie.platzierungen[i],
         turnierpunkte: partie.platzierungen.map(turnierpunkte)[i],
-        partiepunkte: partie.punktetabelle[partie.letzte_runde][i],
+        partiepunkte: partie.punktetabelle_kumulativ[partie.letzte_runde][i],
         plusrunden: anzahl_richtiger_schaetzungen[i],
         zeitpunkt: + new Date()
 }
@@ -320,7 +321,7 @@ function ermittle_platzierungen(partie){
     console.log("ermittle Platzierungen")
 
     // Entferne nicht gespielte Runden aus der Punkte tabelle
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
+    let punktetabelle_einfach = partie.punktetabelle_kumulativ.filter(function( element ) {return element != null;})
     
     // Ermittle Platzierungen nach Partiepunkte-Endstand
     let absolute_ranks = rankings(punktetabelle_einfach[punktetabelle_einfach.length-1])
@@ -361,7 +362,7 @@ function tiebreaker1(partie,indices=range(partie.spieler.length),umkaempfte_plat
     console.log('Tiebreaker1')
 
     // Entferne nicht gespielte Runden aus der Punkte tabelle
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
+    let punktetabelle_einfach = partie.punktetabelle_kumulativ.filter(function( element ) {return element != null;})
     
     // Zähle die Anzahl richtiger Schätzungen
     let anzahl_richtiger_schaetzungen = new Array(partie.spieler.length).fill(0)
@@ -416,7 +417,7 @@ function tiebreaker2(partie,indices=range(partie.spieler.length),umkaempfte_plat
     console.log('Tiebreaker2')
     
     // Entferne nicht gespielte Runden aus der Punkte tabelle
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
+    let punktetabelle_einfach = partie.punktetabelle_kumulativ.filter(function( element ) {return element != null;})
     
     // Finde das beste Einzelergebnis
     let besteEinzelergebnisse = new Array(partie.spieler.length).fill(-Infinity)
@@ -471,7 +472,7 @@ function tiebreaker3(partie,indices=range(partie.spieler.length),umkaempfte_plat
     console.log('Tiebreaker3')
     
     // Entferne nicht gespielte Runden aus der Punkte tabelle
-    let punktetabelle_einfach = partie.punktetabelle.filter(function( element ) {return element != null;})
+    let punktetabelle_einfach = partie.punktetabelle_kumulativ.filter(function( element ) {return element != null;})
     
 
 
@@ -850,7 +851,7 @@ function bauePunktetabelle(partie){
 }
 
 function baueReihe(partie,i){
-    if(partie.punktetabelle[i] == undefined){
+    if(partie.punktetabelle_kumulativ[i] == undefined){
         return baueLeereReihe(partie,i)
     }
     else{
@@ -900,7 +901,7 @@ function baueVolleReiheElement(partie,runde,spielerindex){
     return `
                 <div class="punkteelement">
                   <div class="punktzahl">
-                    ${partie.punktetabelle[runde][spielerindex]}
+                    ${partie.punktetabelle_kumulativ[runde][spielerindex]}
                   </div>
                   <div class="position-absolute top-50 start-100 translate-middle" style="padding-left: 20px">
                         <!--${partie.geber[runde]==partie.spieler[spielerindex] ? `<i class="bi-files"></i>`:``}-->
@@ -1044,7 +1045,7 @@ function baue_neu_gesamtpunktzahl(){
 
     for(let i in partie.spieler){
         let punktzahl = document.getElementById(`punkte${i}`)
-        punktzahl.innerText = partie.punktetabelle[partie.letzte_runde][i]
+        punktzahl.innerText = partie.punktetabelle_kumulativ[partie.letzte_runde][i]
         
         
         if(platzierungen[i] == 1){
@@ -1080,7 +1081,7 @@ function baue_gesamtpunktzahlen(){
     for(const i in partie.spieler){
         reihe.innerHTML += `
                     <span id="punkte${i}" class="gesamtpunktzahl badge text-bg-light">
-                      ${partie.punktetabelle[0][i]}
+                      ${partie.punktetabelle_kumulativ[0][i]}
                     </span>`
     }
 }
@@ -1423,7 +1424,7 @@ function EndstandSpaltePartiepunkte(anzeigereihenfolge){
     for(i of anzeigereihenfolge){
         code += `
               <div id='ppendstandreihe${i+1}' class="endstandspaltenelement">
-                ${partie.punktetabelle[partie.letzte_runde][i]}
+                ${partie.punktetabelle_kumulativ[partie.letzte_runde][i]}
               </div>`
         }
 

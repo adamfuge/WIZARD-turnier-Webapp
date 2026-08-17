@@ -161,10 +161,28 @@ WHERE EXISTS (SELECT 1
 
 
 UPDATE round_results
-                SET play_points = CASE 
+                SET play_points = (CASE 
 					WHEN prediction=tricks 
 					THEN 20 + 10 * prediction 
 					ELSE -10 * ABS(prediction-tricks)
-				   END
+				   END) - SELECT
                 WHERE prediction IS NOT NULL
                 AND tricks IS NOT NULL;
+
+UPDATE round_results r
+                SET play_points = (CASE 
+					WHEN prediction=tricks 
+					THEN 20 + 10 * prediction 
+					ELSE -10 * ABS(prediction-tricks)
+				   END) - 
+				   (SELECT COALESCE(SUM(amount), 0) 
+				   FROM penalties p 
+				   WHERE p.player_id=r.player_id
+				   AND p.round_id=r.round_id)
+                WHERE prediction IS NOT NULL
+                AND tricks IS NOT NULL;
+
+				INSERT INTO penalties (round_id,player_id,amount)
+VALUES (80,1,300)
+
+SELECT * FROM rounds WHERE match_id=10

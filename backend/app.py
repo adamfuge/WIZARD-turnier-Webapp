@@ -54,7 +54,7 @@ def execute_query(query, params=None):
 from contextlib import contextmanager 
 @contextmanager
 def get_db(): 
-    """Stellt sicher, dass die Verbindung immer geschlossen wird.""" 
+    """Making sure the connection gets closed""" 
     conn = get_db_connection() 
     try: 
         yield conn 
@@ -70,66 +70,54 @@ def recalculate_match_results(list_of_match_ids = []):
         cur = conn.cursor()
         if len(list_of_match_ids) == 0:
             cur.execute('''
+                UPDATE round_results r
+                SET play_points = (CASE 
+					WHEN prediction=tricks 
+					THEN 20 + 10 * prediction 
+					ELSE -10 * ABS(prediction-tricks)
+				   END) - 
+				   (SELECT COALESCE(SUM(amount), 0) 
+				   FROM penalties p 
+				   WHERE p.player_id=r.player_id
+				   AND p.round_id=r.round_id)
+                WHERE prediction IS NOT NULL
+                AND tricks IS NOT NULL;
+
                 UPDATE match_results mr 
-                SET total_play_points = (SELECT play_points
+                SET total_play_points = (SELECT SUM(play_points)
 											FROM round_results rr1
             									JOIN rounds r1 ON r1.id = round_id
 											WHERE r1.match_id = mr.match_id
-											AND rr1.player_id = mr.player_id
-            								AND r1.round_number = (
-            								    SELECT MAX(r2.round_number) 
-												FROM round_results rr2
-            										JOIN rounds r2 ON r2.id = rr2.round_id
-            								    WHERE r2.match_id = mr.match_id
-												AND rr2.player_id = mr.player_id
-												AND r2.finished
-            								)),
-					round_wins = (SELECT COUNT(lr.id) 
-                                                        FROM rounds lr
-                                                            JOIN rounds nr ON lr.match_id = nr.match_id
-                                                            JOIN round_results l ON lr.id = l.round_id
-                                                            JOIN round_results n ON nr.id = n.round_id 
-                                                        WHERE l.player_id = n.player_id 
-                                                        AND lr.round_number = nr.round_number-1
-                                                        AND nr.finished
-                                                        AND lr.match_id = mr.match_id
-                                                        AND l.player_id = mr.player_id
-                                                        AND n.play_points > l.play_points ),
-                    best_round_result = (SELECT MAX(n.play_points - l.play_points) 
-				                        FROM rounds lr
-				                        	JOIN rounds nr ON lr.match_id = nr.match_id
-				                        	JOIN round_results l ON lr.id = l.round_id
-				                        	JOIN round_results n ON nr.id = n.round_id 
-				                        WHERE l.player_id = n.player_id 
-				                        AND lr.round_number = nr.round_number-1
-				                        AND nr.finished
-				                        AND lr.match_id = mr.match_id
-				                        AND l.player_id = mr.player_id);
+											AND rr1.player_id = mr.player_id),
+					round_wins = (SELECT COUNT(r.id) 
+                                                        FROM rounds r
+															JOIN round_results rr ON r.id = rr.round_id
+                                                        WHERE r.finished
+                                                        AND r.match_id = mr.match_id
+                                                        AND rr.player_id = mr.player_id
+                                                        AND play_points > 0 ),
+                    best_round_result = (SELECT MAX(play_points) 
+				                        				FROM rounds r
+															JOIN round_results rr ON r.id = rr.round_id
+                                                        AND r.finished
+                                                        AND r.match_id = mr.match_id
+                                                        AND rr.player_id = mr.player_id);
 
                 UPDATE match_results mr 
-				SET best_round_result_count = (SELECT COUNT(lr.id) 
-				                        FROM rounds lr
-				                        	JOIN rounds nr ON lr.match_id = nr.match_id
-				                        	JOIN round_results l ON lr.id = l.round_id
-				                        	JOIN round_results n ON nr.id = n.round_id 
-				                        WHERE l.player_id = n.player_id 
-				                        AND lr.round_number = nr.round_number-1
-				                        AND nr.finished
-				                        AND lr.match_id = mr.match_id
-				                        AND l.player_id = mr.player_id
-										AND n.play_points - l.play_points = best_round_result),
-                     second_best_round_result = (SELECT MAX(n.play_points - l.play_points) 
-				                        FROM rounds lr
-				                        	JOIN rounds nr ON lr.match_id = nr.match_id
-				                        	JOIN round_results l ON lr.id = l.round_id
-				                        	JOIN round_results n ON nr.id = n.round_id 
-				                        WHERE l.player_id = n.player_id 
-				                        AND lr.round_number = nr.round_number-1
-				                        AND nr.finished
-				                        AND lr.match_id = mr.match_id
-				                        AND l.player_id = mr.player_id
-										AND n.play_points - l.play_points < best_round_result);
-                    
+				SET best_round_result_count = (SELECT COUNT(r.id) 
+				                        				FROM rounds r
+															JOIN round_results rr ON r.id = rr.round_id
+                                                        AND r.finished
+                                                        AND r.match_id = mr.match_id
+                                                        AND rr.player_id = mr.player_id
+														AND play_points = best_round_result),
+                     second_best_round_result = (SELECT MAX(play_points)
+				                        FROM rounds r
+															JOIN round_results rr ON r.id = rr.round_id
+                                                        AND r.finished
+                                                        AND r.match_id = mr.match_id
+                                                        AND rr.player_id = mr.player_id
+														AND play_points < best_round_result);    
                 UPDATE tiebreaker_results
                 SET play_points = CASE 
 					WHEN prediction=tricks 
@@ -143,42 +131,29 @@ def recalculate_match_results(list_of_match_ids = []):
                         RANK() OVER (
                             PARTITION BY tiebreaker_id 
                             ORDER BY play_points DESC) AS standing
-                    FROM tiebreaker_results
-                )
+                    FROM tiebreaker_results)
                 UPDATE tiebreaker_results tr
-                SET relative_standing = r.standing
-                FROM rankings r
-                WHERE tr.id = r.id; 
+                    SET relative_standing = r.standing
+                    FROM rankings r
+                    WHERE tr.id = r.id; 
                                         
-                UPDATE match_results mr 
-                SET tiebreaker5_relative_standing = (SELECT relative_standing 
-                                        FROM tiebreaker_results tr
-                                        JOIN tiebreaker t ON tr.tiebreaker_id = t.id
-                                        WHERE t.match_id = mr.match_id
-                                        AND tr.player_id = mr.player_id)
-                WHERE EXISTS (SELECT relative_standing 
-                                        FROM tiebreaker_results tr
-                                        JOIN tiebreaker t ON tr.tiebreaker_id = t.id
-                                        WHERE t.match_id = mr.match_id
-                                        AND tr.player_id = mr.player_id);
+                WITH calculated_tiebreaker_standing AS (
+                	SELECT mr_old.id,
+                    		COALESCE(tr.relative_standing, 1) AS standing
+                    FROM match_results mr_old
+                    LEFT JOIN tiebreaker_results tr ON tr.player_id = mr_old.player_id
+                    LEFT JOIN tiebreaker t ON t.id = tr.tiebreaker_id AND t.match_id = mr_old.match_id )
+                UPDATE match_results mr
+                    SET tiebreaker5_relative_standing = c.standing
+                    FROM calculated_tiebreaker_standing c
+                    WHERE c.id = mr.id;
 
                 UPDATE match_results mr 
-				SET tiebreaker5_relative_standing = (SELECT relative_standing 
-                                        FROM tiebreaker_results
-                                        WHERE match_id = mr.match_id
-				                        AND player_id = mr.player_id)
-                WHERE EXISTS (SELECT relative_standing 
-                                        FROM tiebreaker_results
-                                        WHERE match_id = mr.match_id
-				                        AND player_id = mr.player_id);
-
-                    
-                UPDATE match_results mr 
-                SET tiebreaker5_relative_standing = 1
-                WHERE NOT EXISTS (SELECT final_standing 
-                                        FROM tiebreaker_results
-                                        WHERE match_id = mr.match_id
-                                        AND player_id = mr.player_id);
+                    SET tiebreaker5_relative_standing = 1
+                    WHERE NOT EXISTS (SELECT final_standing 
+                                            FROM tiebreaker_results
+                                            WHERE match_id = mr.match_id
+                                            AND player_id = mr.player_id);
 
                 WITH rankings as (SELECT id, RANK() OVER (PARTITION BY match_id 
 														ORDER BY mr2.total_play_points DESC, 
@@ -288,20 +263,23 @@ def get_active_vorrunde():
 
         return {'active_vorrunde_id': result[0][0], 'vorrunde_name': result[0][1]}
 
-@app.route('/create_player', methods=['POST'])
-def create_player():
-    with get_db() as conn: 
-        cur = conn.cursor()
 
-        data = request.get_json()
-        username = data.get('username')
-
-        if not username:
-            return "Error: 'username' is required.\n", 400
-        
-        cur.execute('INSERT INTO players (username) VALUES (%s);', (username,))
-        return "Player created!\n"
-
+# commentated out as it is not currently used
+#
+#@app.route('/create_player', methods=['POST'])
+#def create_player():
+#    with get_db() as conn: 
+#        cur = conn.cursor()
+#
+#        data = request.get_json()
+#        username = data.get('username')
+#
+#        if not username:
+#            return "Error: 'username' is required.\n", 400
+#        
+#        cur.execute('INSERT INTO players (username) VALUES (%s);', (username,))
+#        return "Player created!\n"
+#
 @app.route('/create_player_by_id/<int:player_id>', methods=['GET'])
 def create_player_by_id(player_id):
     with get_db() as conn: 
@@ -311,100 +289,101 @@ def create_player_by_id(player_id):
         return "Player created!\n"
 
 
-@app.route('/get_players', methods=['GET'])
-def get_players():
-    with get_db() as conn: 
-        cur = conn.cursor()
-        cur.execute('SELECT id, username, total_tournament_points, total_play_points FROM players;')
-        result = cur.fetchall()
-
-        players_list = []
-        for player in result:
-            players_list.append({
-                'id': player[0],
-                'username': player[1],
-                'sum_tournament_points': player[2],
-                'sum_play_points': player[3]
-            })
-        return {'players': players_list}
-
-
-@app.route('/get_player/<int:player_id>', methods=['GET'])
-def get_player(player_id):
-    with get_db() as conn: 
-        cur = conn.cursor()
-        cur.execute('SELECT id, username, total_tournament_points, total_play_points FROM players WHERE id = %s;', (player_id,))
-        result = cur.fetchall()
-        if not result:
-            return "Player not found.\n", 404
-        player = result[0]
-        return {
-            'id': player[0],
-            'username': player[1],
-            'sum_tournament_points': player[2],
-            'sum_play_points': player[3]
-        }
-
-@app.route('/get_players_by_table/<string:table_name>', methods=['GET'])
-def get_players_by_table(table_name):
-    with get_db() as conn: 
-        cur = conn.cursor()
-        cur.execute('''
-            SELECT p.id, p.username, p.total_tournament_points, p.total_play_points
-            FROM players p
-            JOIN tables t ON p.current_table_id = t.id
-            WHERE t.table_name = %s;
-        ''', (table_name,))
-        result = cur.fetchall()
-
-        players_list = []
-        for player in result:
-            players_list.append({
-                'id': player[0],
-                'username': player[1],
-                'sum_tournament_points': player[2],
-                'sum_play_points': player[3]
-            })
-        return {'players': players_list}
-
-@app.route('/update_player_status', methods=['POST'])
-def update_player_status():
-    try:
-        data = request.get_json()
-        player_id = data.get('player_id')
-        new_status = data.get('is_active')
-        current_table = data.get('current_table')
-        if not player_id or new_status is None:
-            return "Error: 'player_id' and 'is_active' are required.\n", 400
-        
-        execute_query('''
-            UPDATE players SET is_active = %s, current_table_id = (SELECT id FROM tables WHERE table_name = %s) WHERE id = %s; ''', (new_status, current_table, player_id))
-        return "Player status updated!\n"
-    except Exception as e:
-        return f"Error: {str(e)}\n", 400
-    
-@app.route('/post_round_result', methods=['POST'])
-def post_round_result():
-    with get_db() as conn: 
-        cur = conn.cursor()
-        data = request.get_json()
-        # the match result is an array of objects, each object has the following structure:
-        # {"table_name": "A", "player_id": 1, "play_points": 5, "tournament_points": 10}
-
-        for result in data:
-            table_name = result.get('table_name')
-            player_id = result.get('player_id')
-            play_points = result.get('play_points')
-            tournament_points = result.get('tournament_points')
-
-            cur.execute('''
-                UPDATE match_results
-                SET total_play_points = %s, tournament_points = %s
-                WHERE match_id = (SELECT id FROM matches WHERE table_id = (SELECT id FROM tables WHERE table_name = %s))
-                AND player_id = %s;
-            ''', (play_points, tournament_points, table_name, player_id))
-
-        return "Match results updated!\n"
+#@app.route('/get_players', methods=['GET'])
+#def get_players():
+#    with get_db() as conn: 
+#        cur = conn.cursor()
+#        cur.execute('SELECT id, username, total_tournament_points, total_play_points FROM players;')
+#        result = cur.fetchall()
+#
+#        players_list = []
+#        for player in result:
+#            players_list.append({
+#                'id': player[0],
+#                'username': player[1],
+#                'sum_tournament_points': player[2],
+#                'sum_play_points': player[3]
+#            })
+#        return {'players': players_list}
+#
+#
+#@app.route('/get_player/<int:player_id>', methods=['GET'])
+#def get_player(player_id):
+#    with get_db() as conn: 
+#        cur = conn.cursor()
+#        cur.execute('SELECT id, username, total_tournament_points, total_play_points FROM players WHERE id = %s;', (player_id,))
+#        result = cur.fetchall()
+#        if not result:
+#            return "Player not found.\n", 404
+#        player = result[0]
+#        return {
+#            'id': player[0],
+#            'username': player[1],
+#            'sum_tournament_points': player[2],
+#            'sum_play_points': player[3]
+#        }
+#
+#@app.route('/get_players_by_table/<string:table_name>', methods=['GET'])
+#def get_players_by_table(table_name):
+#    with get_db() as conn: 
+#        cur = conn.cursor()
+#        cur.execute('''
+#            SELECT p.id, p.username, p.total_tournament_points, p.total_play_points
+#            FROM players p
+#            JOIN tables t ON p.current_table_id = t.id
+#            WHERE t.table_name = %s;
+#        ''', (table_name,))
+#        result = cur.fetchall()
+#
+#        players_list = []
+#        for player in result:
+#            players_list.append({
+#                'id': player[0],
+#                'username': player[1],
+#                'sum_tournament_points': player[2],
+#                'sum_play_points': player[3]
+#            })
+#        return {'players': players_list}
+#
+#@app.route('/update_player_status', methods=['POST'])
+#def update_player_status():
+#    try:
+#        data = request.get_json()
+#        player_id = data.get('player_id')
+#        new_status = data.get('is_active')
+#        current_table = data.get('current_table')
+#        if not player_id or new_status is None:
+#            return "Error: 'player_id' and 'is_active' are required.\n", 400
+#        
+#        execute_query('''
+#            UPDATE players SET is_active = %s, current_table_id = (SELECT id FROM tables WHERE table_name = %s) WHERE id = %s; ''', (new_status, current_table, player_id))
+#        return "Player status updated!\n"
+#    except Exception as e:
+#        return f"Error: {str(e)}\n", 400
+#    
+#
+#@app.route('/post_round_result', methods=['POST'])
+#def post_round_result():
+#    with get_db() as conn: 
+#        cur = conn.cursor()
+#        data = request.get_json()
+#        # the match result is an array of objects, each object has the following structure:
+#        # {"table_name": "A", "player_id": 1, "play_points": 5, "tournament_points": 10}
+#
+#        for result in data:
+#            table_name = result.get('table_name')
+#            player_id = result.get('player_id')
+#            play_points = result.get('play_points')
+#            tournament_points = result.get('tournament_points')
+#
+#            cur.execute('''
+#                UPDATE match_results
+#                SET total_play_points = %s, tournament_points = %s
+#                WHERE match_id = (SELECT id FROM matches WHERE table_id = (SELECT id FROM tables WHERE table_name = %s))
+#                AND player_id = %s;
+#            ''', (play_points, tournament_points, table_name, player_id))
+#
+#        return "Match results updated!\n"
 
 @app.route('/post_tiebreaker_start', methods=['POST'])
 def post_tiebreaker_start():
@@ -433,8 +412,7 @@ def post_tiebreaker_start():
         
         
         if not match_id:
-            cur.execute('''
-                            SELECT id
+            cur.execute('''SELECT id
                                                 FROM matches 
                                                 WHERE table_id = (SELECT t.id FROM tables t WHERE table_name = %s)
                                                 AND vorrunde_id = (SELECT v.id FROM vorrunden v WHERE v.id = %s)
@@ -496,7 +474,7 @@ def post_tiebreaker_result():
                 UPDATE tiebreaker_results
                 SET prediction = %s,
                     tricks = %s
-                FROM tiebreaker tb
+                FROM tiebreaker t
                 WHERE player_id = %s
                 AND match_id =(SELECT m.id
                 			FROM matches m
@@ -625,20 +603,17 @@ def post_match_update():
         
         for i in range(len(data.get('spieler'))):
             player_id = data.get('spieler')[i]
-            play_points = data.get('punktetabelle')[last_round][i]
             prediction = data.get('schaetzungen')[last_round][i]
             tricks = data.get('stiche')[last_round][i]
             
             cur.execute('''
                 UPDATE round_results
-                SET play_points = %s,
-					prediction = %s,
+                SET prediction = %s,
 					tricks = %s,
 					submitted_at = CURRENT_TIMESTAMP
                 WHERE round_id = %s
                 AND player_id = %s
-                RETURNING id;''', (play_points,
-                                   prediction,
+                RETURNING id;''', (prediction,
                                    tricks,
                                    last_round_id,
                                    player_id
@@ -819,6 +794,7 @@ def get_match_info(match_id):
             return {'vorrunde': vorrunde,
                         'tisch': table_name,
                         'spieler': list(map(str,player_ids)),
+                        'punktetabelle_kumulativ': [[0]*len(player_ids)],
                         'punktetabelle': [[0]*len(player_ids)],
                         'letzte_runde': last_round,
                         'aktuelle_runde': next_round,
@@ -833,20 +809,27 @@ def get_match_info(match_id):
                                                         displayed_round_number,
                                                         prediction,
                                                         tricks,
-                                                        play_points
+                                                        play_points,
+														(SELECT SUM(rr2.play_points) 
+															FROM round_results rr2 
+															JOIN rounds r2 ON rr2.round_id = r2.id 
+															WHERE r2.round_number <= r.round_number
+															AND r2.match_id = r.match_id
+															AND rr2.player_id = rr.player_id) as play_points_cumulative
                                                         FROM rounds r, round_results rr, match_results mr, round_numbers n
                                                         WHERE r.match_id = %s
-                                                        AND mr.match_id = %s
+                                                        AND mr.match_id = r.match_id
                                                         AND rr.round_id = r.id
 	    												AND r.round_number = n.round_number
                                                         AND rr.player_id = mr.player_id
                                                         AND n.player_amount = %s
                                                         AND finished = TRUE;
-                                        ''', (match_id, match_id, len(player_ids)))
+                                        ''', (match_id, len(player_ids)))
         round_results_infos = cur.fetchall()
 
 
         scores = [[None] * (len(player_ids)) for _ in range(scoressheet_length)]
+        scores_cumulative = [[None] *(len(player_ids)) for _ in range(scoressheet_length)]
         predictions = [[None] *(len(player_ids)) for _ in range(scoressheet_length)]
         tricks = [[None] * (len(player_ids)) for _ in range(scoressheet_length)]
 
@@ -857,6 +840,7 @@ def get_match_info(match_id):
             predictions[current_displayed_round_number][current_seat] = res[2]
             tricks[current_displayed_round_number][current_seat] = res[3]
             scores[current_displayed_round_number][current_seat] = res[4]
+            scores_cumulative[current_displayed_round_number][current_seat] = res[5]
 
         cur.execute('''SELECT DISTINCT 1
                         FROM rounds
@@ -903,6 +887,7 @@ def get_match_info(match_id):
                 'vorrunde': vorrunde,
                 'tisch': table_name,
                 'spieler': list(map(str,player_ids)),
+                'punktetabelle_kumulativ': scores_cumulative,
                 'punktetabelle': scores,
                 'letzte_runde': last_round,
                 'aktuelle_runde': next_round,
@@ -915,49 +900,49 @@ def get_match_info(match_id):
                 'ausstehende_tiebreaker': tiebreaker_to_play
                 }           
 
-@app.route('/get_table/<string:table_name>', methods=['GET'])
-def get_table(table_name):
-    with get_db() as conn: 
-        cur = conn.cursor()
+#@app.route('/get_table/<string:table_name>', methods=['GET'])
+#def get_table(table_name):
+#    with get_db() as conn: 
+#        cur = conn.cursor()
+#
+#        cur.execute('SELECT id, table_name FROM tables WHERE table_name = %s;', (table_name,))
+#        result = cur.fetchall()
+#
+#        if not result:
+#            return "Table not found.\n", 404
+#        table = result[0]
+#        return {
+#            'id': table[0],
+#            'table_name': table[1]
+#        }
 
-        cur.execute('SELECT id, table_name FROM tables WHERE table_name = %s;', (table_name,))
-        result = cur.fetchall()
-
-        if not result:
-            return "Table not found.\n", 404
-        table = result[0]
-        return {
-            'id': table[0],
-            'table_name': table[1]
-        }
-
-@app.route('/get_tables', methods=['GET'])
-def get_tables():
-    with get_db() as conn: 
-        cur = conn.cursor()
-
-        cur.execute('SELECT id, table_name FROM tables;')
-        result = cur.fetchall()
-
-        tables_list = []
-        for table in result:
-            tables_list.append({
-                'id': table[0],
-                'table_name': table[1]
-            })
-        return {'tables': tables_list}
-
-@app.route('/get_table_names', methods=['GET'])
-def get_table_names():
-    with get_db() as conn: 
-        cur = conn.cursor()
-        cur.execute('SELECT table_name FROM tables;')
-        result = cur.fetchall()
-
-        tables_list = []
-        for table in result:
-            tables_list.append(table[0])
-        return tables_list
+#@app.route('/get_tables', methods=['GET'])
+#def get_tables():
+#    with get_db() as conn: 
+#        cur = conn.cursor()
+#
+#        cur.execute('SELECT id, table_name FROM tables;')
+#        result = cur.fetchall()
+#
+#        tables_list = []
+#        for table in result:
+#            tables_list.append({
+#                'id': table[0],
+#                'table_name': table[1]
+#            })
+#        return {'tables': tables_list}
+#
+#@app.route('/get_table_names', methods=['GET'])
+#def get_table_names():
+#    with get_db() as conn: 
+#        cur = conn.cursor()
+#        cur.execute('SELECT table_name FROM tables;')
+#        result = cur.fetchall()
+#
+#        tables_list = []
+#        for table in result:
+#            tables_list.append(table[0])
+#        return tables_list
 
 @app.route('/get_available_table_names', methods=['GET'])
 def get_available_table_names():
@@ -1092,7 +1077,7 @@ def init_db():
 
         CREATE TABLE IF NOT EXISTS penalties (
             id SERIAL PRIMARY KEY,
-            round_id INTEGER NOT NULL REFERENCES matches(id) ON DELETE CASCADE,
+            round_id INTEGER NOT NULL REFERENCES rounds(id) ON DELETE CASCADE,
             player_id INTEGER NOT NULL REFERENCES players(id) ON DELETE CASCADE,
             amount INTEGER NOT NULL,
             submitted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
